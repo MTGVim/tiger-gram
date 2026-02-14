@@ -1,0 +1,30 @@
+import { describe, expect, it } from 'vitest';
+import {
+  generateNonogramByDifficulty,
+  parseNonogramSizeTier,
+  sizeForDifficulty
+} from '../../../src/features/nonogram/generator';
+
+describe('nonogram size tiers', () => {
+  it('parses difficulty from query string', () => {
+    expect(parseNonogramSizeTier('easy')).toBe('easy');
+    expect(parseNonogramSizeTier('hard')).toBe('hard');
+    expect(parseNonogramSizeTier('expert')).toBe('expert');
+    expect(parseNonogramSizeTier('unknown')).toBe('medium');
+    expect(parseNonogramSizeTier(null)).toBe('medium');
+  });
+
+  it('maps tier to board sizes', () => {
+    expect(sizeForDifficulty('easy', 42)).toBe(10);
+    expect(sizeForDifficulty('medium', 42)).toBe(15);
+    expect(sizeForDifficulty('hard', 42)).toBe(20);
+    expect(sizeForDifficulty('expert', 42)).toBe(25);
+  });
+
+  it('generates puzzle using tier size', () => {
+    const puzzle = generateNonogramByDifficulty(3, 'medium');
+    expect(puzzle.size).toBe(15);
+    expect(puzzle.rowClues).toHaveLength(15);
+    expect(puzzle.colClues).toHaveLength(15);
+  });
+});
