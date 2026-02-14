@@ -17,9 +17,9 @@ export function AppShell({ children }: AppShellProps) {
         <div>
           <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-white/45">PURE LOGIC. NO LUCK.</p>
           <div className="mt-1 flex items-center justify-between gap-3">
-            <h1 className="text-2xl font-bold tracking-tight text-white sm:text-4xl">tigoku-gram</h1>
+            <h1 className="text-2xl font-bold tracking-tight text-white sm:text-4xl">TigerGram</h1>
             <a
-              href="https://github.com/MTGVim/tigoku-gram"
+              href="https://github.com/MTGVim/tiger-gram"
               target="_blank"
               rel="noreferrer"
               aria-label="GitHub 저장소"

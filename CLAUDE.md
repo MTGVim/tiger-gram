@@ -1,471 +1,172 @@
 # CLAUDE.md
 
-# Web Logic Puzzle Platform
-Version: 6.0
-Games: Nonogram + Sudoku
-Platform: Web / Mobile Web / PWA
-Storage: Local-first (IndexedDB + localStorage)
-Monetization: None
+# TigerGram Implementation Snapshot
+Version: 2026-02-14
+
+TigerGram은 노노그램과 스도쿠를 제공하는 웹 로직 퍼즐 앱이다.
+이 문서는 "목표 스펙"이 아니라 "현재 구현 상태"를 기록한다.
 
 ---
 
-# 1. PRODUCT VISION
+## 1. Product Summary
 
-Build a deterministic, skill-based puzzle platform:
-
-- Zero guessing
-- Fully solver-verified
-- Competitive streak system
-- Advanced difficulty modeling
-- High-performance mobile UX
-- Offline-first architecture
+- App Name: TigerGram
+- Tagline: Pure Logic. No Luck.
+- Games: Nonogram + Sudoku
+- Platform: Web (React SPA)
+- Storage: localStorage (`tiger-gram:*`)
+- Deployment: GitHub Pages (GitHub Actions)
 
 ---
 
-# 2. RELEASE-LEVEL POLISH (A)
+## 2. Current Routes
 
-## UX Micro-Polish
-
-```json
-{
-  "ux_enhancements": {
-    "cell_feedback": {
-      "press_scale_animation": true,
-      "conflict_shake": true,
-      "soft_vibration_mobile": true
-    },
-    "completion_animation": {
-      "board_wave_reveal": true,
-      "confetti_lightweight": true
-    },
-    "hint_completion_color_transition": true,
-    "dark_mode": true,
-    "adaptive_font_scaling": true
-  }
-}
-```
-
-## Perceived Performance
-
-```json
-{
-  "performance_polish": {
-    "optimistic_ui_updates": true,
-    "validation_debounced_ms": 8,
-    "lazy_board_render": true,
-    "web_worker_generators": true
-  }
-}
-```
+- `/` : 소개 랜딩 페이지
+- `/nonogram` : 노노그램 플레이
+- `/sudoku` : 스도쿠 플레이
+- `*` : `/`로 리다이렉트
 
 ---
 
-# 3. ADVANCED NONOGRAM SOLVER (B)
+## 3. Implemented Features
 
-## Multi-Layer Deduction Engine
+### 3.1 Nonogram
 
-```json
-{
-  "nonogram_solver_levels": [
-    "single_line_overlap",
-    "boundary_fill",
-    "block_push",
-    "cross_line_constraint",
-    "contradiction_propagation",
-    "recursive_assumption_limited"
-  ]
-}
-```
+- 난이도 티어: `easy | medium | hard`
+- 보드 크기 정책:
+  - easy: 5x5
+  - medium: 10x10
+  - hard: 15x15
+- 퍼즐 생성:
+  - seed 기반 생성
+  - fill profile 기반 후보 생성
+  - 유일해 검증(count cap + node limit)
+- 생성 실행:
+  - Web Worker(`nonogram.worker.ts`)에서 비동기 생성
+  - 진행률/시도 횟수 표시
+- 플레이 UI:
+  - 마우스 드래그로 칠하기/지우기
+  - 우클릭으로 셀 상태 사이클
+  - 행/열 클루 충족 시 색상 강조
+- 로직 분석:
+  - 솔버 메트릭(`maxLogicDepth`, `forcedMoves`, `usedRecursion`) 계산
+  - 메트릭 기반 로직 난이도(`easy|medium|hard|expert`) 표시
 
-## Solve Simulation for Difficulty
+### 3.2 Sudoku
 
-```json
-{
-  "solve_simulation": {
-    "track_steps": true,
-    "record_logic_depth": true,
-    "count_forced_moves": true,
-    "measure_backtracking_usage": true
-  }
-}
-```
+- 난이도 티어: `easy | medium | hard`
+- 생성:
+  - seed 기반 solved grid 생성(밴드/스택/숫자 셔플)
+  - givens 목표치 기준 carving
+    - easy: 42
+    - medium: 34
+    - hard: 28
+  - 유일해 검증(count cap=2)
+- 플레이 UI:
+  - 셀 선택 및 숫자 입력 패드
+  - 메모 모드(후보 숫자 기록)
+  - 같은 숫자/행/열/박스 하이라이트
+- 로직 분석:
+  - 솔버 기법 추적
+    - naked/hidden single
+    - naked/hidden pair
+    - box-line reduction
+    - x-wing, swordfish
+  - 기법 점수 기반 로직 난이도(`easy|medium|hard|expert`) 표시
 
-Difficulty determined by:
+### 3.3 Shared Gameplay
 
-```json
-{
-  "difficulty_model": {
-    "easy": "no recursion required",
-    "medium": "minor cross constraints",
-    "hard": "deep multi-line deduction",
-    "expert": "recursive reasoning required"
-  }
-}
-```
+- 상태: `playing | won | lost`
+- 타이머
+- 재시작 / 새 퍼즐 / 포기
+- 승리 시:
+  - confetti burst 애니메이션
+  - 효과음 재생(음소거 토글 가능)
+  - 리더보드 기록
 
----
+### 3.4 Leaderboard / Persistence
 
-# 4. IMAGE → NONOGRAM AUTO BALANCER (B+)
-
-After image conversion:
-
-```json
-{
-  "auto_balance": {
-    "adjust_threshold_until_solvable": true,
-    "auto_reduce_noise": true,
-    "ensure_minimum_forced_moves": true,
-    "reject_if_solver_depth_exceeds_limit": true
-  }
-}
-```
-
-Goal:
-- Avoid impossible puzzles
-- Avoid trivial puzzles
-- Produce balanced difficulty
-
----
-
-# 5. SUDOKU ADVANCED DIFFICULTY ENGINE (B)
-
-Track solving techniques used during simulation:
-
-```json
-{
-  "technique_tracking": [
-    "naked_single",
-    "hidden_single",
-    "naked_pair",
-    "hidden_pair",
-    "box_line_reduction",
-    "x_wing",
-    "swordfish"
-  ]
-}
-```
-
-Difficulty mapping:
-
-```json
-{
-  "difficulty_classification": {
-    "easy": ["naked_single"],
-    "medium": ["hidden_single"],
-    "hard": ["naked_pair", "hidden_pair"],
-    "expert": ["x_wing", "swordfish"]
-  }
-}
-```
+- 로컬 퍼즐 리더보드(`leaderboard:v1`)
+- 게임/난이도별 기록 누적 후 정렬
+- 최대 150개 보관
+- 구 포맷 레거시 데이터 마이그레이션 지원
+- 모든 저장은 `src/lib/persistence.ts`를 통해 처리
 
 ---
 
-# 6. STREAK + RANKING SYSTEM (D)
+## 4. Difficulty Query Parsing (Current Behavior)
 
-## Philosophy
-
-Reward skill.
-No luck.
-Loss breaks streak only if logical error made.
+- `difficulty=expert` -> `hard` (legacy alias)
+- `difficulty`가 없거나 알 수 없는 값이면 `easy`로 폴백
 
 ---
 
-## Streak Model
+## 5. Tech Stack
 
-```json
-{
-  "streak_system": {
-    "track_per_game": true,
-    "break_condition": "mistake_limit_exceeded OR puzzle_abandoned",
-    "daily_streak": true,
-    "best_streak_recorded": true
-  }
-}
-```
+- React 19 + TypeScript(strict)
+- Vite 6
+- Tailwind CSS
+- React Router
+- Vitest + React Testing Library
 
 ---
 
-## Skill Rating (ELO-Like)
+## 6. Repository Structure
 
-```json
-{
-  "rating_system": {
-    "base_rating": 1000,
-    "rating_change_formula": "K * (actual - expected)",
-    "difficulty_weighted": true,
-    "speed_modifier": true
-  }
-}
-```
-
-Expected score:
-
-```
-expected = 1 / (1 + 10^((puzzle_difficulty - player_rating)/400))
-```
+- `src/features/nonogram/`: nonogram generator/solver/worker/UI
+- `src/features/sudoku/`: sudoku generator/solver/UI
+- `src/components/`: AppShell, LeaderboardPanel, CelebrationBurst 등
+- `src/pages/`: route-level pages
+- `src/lib/`: rating/streak/leaderboard/persistence/validation
+- `src/styles/`: global CSS + animation
+- `tests/`: feature/lib 테스트
 
 ---
 
-## Performance Score Formula
+## 7. Deployment
 
-```json
-{
-  "performance_score": {
-    "base": 100,
-    "time_penalty": "log(seconds)",
-    "mistake_penalty": 20,
-    "difficulty_multiplier": 1.5
-  }
-}
-```
+GitHub Actions workflow: `.github/workflows/deploy-pages.yml`
+
+- trigger: `main` push, `workflow_dispatch`
+- build: `yarn install --frozen-lockfile` -> `yarn build`
+- SPA fallback: `dist/index.html` -> `dist/404.html`
+- deploy: GitHub Pages artifact 배포
+
+Vite `base`는 `GITHUB_ACTIONS` / `GITHUB_REPOSITORY` 환경변수 기반으로 자동 설정된다.
 
 ---
 
-# 7. LEADERBOARD (LOCAL)
+## 8. Not Implemented Yet
 
-```json
-{
-  "leaderboard": {
-    "type": "local_only",
-    "categories": [
-      "fastest_time",
-      "highest_streak",
-      "highest_rating"
-    ],
-    "separate_by_game": true
-  }
-}
-```
+아래 항목은 현재 코드에 구현되어 있지 않다.
+
+- PWA/service worker/offline cache
+- IndexedDB 저장소
+- 이미지 -> 노노그램 변환 파이프라인
+- 일간 퍼즐(Daily puzzle)
+- 서버/클라우드 기반 글로벌 랭킹
 
 ---
 
-# 8. HIGH-PERFORMANCE ARCHITECTURE (A+B)
+## 9. Brand Notes
 
-```json
-{
-  "performance_engine": {
-    "render_strategy": "canvas_for_large_boards",
-    "batch_state_updates": true,
-    "memoized_selectors": true,
-    "generator_threading": "web_worker",
-    "large_dataset_storage": "IndexedDB"
-  }
-}
-```
+- Tone: sharp, minimal, skill-driven
+- Primary color tokens:
+  - bg: `#0F0F14`
+  - accent: `#FF3B3B`
+  - logic: `#FFD166`
+  - success: `#4CAF50`
+- Fonts:
+  - display: Space Grotesk
+  - mono: IBM Plex Mono
 
 ---
 
-# 9. IMAGE PROCESSING (RECAP)
+## 10. Maintenance Rule
 
-```json
-{
-  "image_pipeline": [
-    "resize",
-    "grayscale",
-    "adaptive_threshold",
-    "dither_optional",
-    "morphology_cleanup",
-    "solver_verify",
-    "difficulty_classify"
-  ]
-}
-```
+문서와 구현이 다르면 구현을 우선한다.
+새 기능/정책 변경 시 아래 파일을 같은 PR에서 함께 갱신한다.
 
----
-
-# 10. OFFLINE STRATEGY
-
-```json
-{
-  "pwa": {
-    "cache_strategy": "cache_first",
-    "runtime": "stale_while_revalidate",
-    "generator_available_offline": true
-  }
-}
-```
-
----
-
-# 11. PLAYER PROGRESSION SYSTEM
-
-```json
-{
-  "progression": {
-    "unlock_by_rating": true,
-    "unlock_by_completed_count": true,
-    "expert_mode_hidden_initially": true
-  }
-}
-```
-
----
-
-# 12. COMPLETION FLOW (UPGRADED)
-
-```json
-[
-  "stop_timer",
-  "calculate_performance_score",
-  "update_rating",
-  "update_streak",
-  "update_statistics",
-  "animate_victory"
-]
-```
-
----
-
-# 13. SYSTEM GUARANTEES
-
-- All puzzles solver-verified
-- No random guessing required
-- Difficulty algorithmically measured
-- Generators non-blocking
-- UI 60fps target
-- Fully offline playable
-- Skill-based streak & rating system
-
----
-
-# FINAL STATE
-
-Platform now includes:
-
-- Nonogram (manual + generator + image conversion)
-- Sudoku (unique generator + advanced rating)
-- Multi-level solvers
-- Difficulty simulation engine
-- Skill-based ELO rating
-- Streak system
-- Local leaderboard
-- Daily puzzle
-- Offline PWA
-- Release-level polish
-- High-performance architecture
-
-This is no longer a toy project.
-This is a full deterministic puzzle platform.
-
----
-
-# BRAND SPEC
-
-App Name: tigoku-gram
-
-Meaning:
-- "tigoku" inspired by "지옥" (hell difficulty)
-- "gram" from Nonogram
-- Suggests hardcore deterministic logic puzzle platform
-
-Tagline Options:
-- "Pure Logic. No Luck."
-- "Skill Over Chance."
-- "No Guessing Allowed."
-- "Welcome to Logic Hell."
-
-Tone:
-- Sharp
-- Minimal
-- Skill-driven
-- Slightly hardcore
-
-Visual Identity:
-
-Primary Colors:
-- Background: #0F0F14
-- Accent: #FF3B3B (inferno red)
-- Secondary Accent: #FFD166 (logic highlight)
-- Success: #4CAF50
-- Conflict/Error: #FF3B3B
-
-Typography:
-- Bold geometric sans-serif
-- Monospaced numerals for timers
-- Tight letter spacing
-
-Icon Concept:
-- Minimal square grid
-- One filled red cell glowing
-- Subtle flame corner accent
-
----
-
-# TIGOKU-GRAM MODES
-
-```json
-{
-  "modes": {
-    "standard": {
-      "mistake_limit": null,
-      "rating_enabled": true
-    },
-    "hell_mode": {
-      "mistake_limit": 1,
-      "timer_visible": true,
-      "rating_multiplier": 1.5
-    },
-    "zen_mode": {
-      "mistake_limit": null,
-      "timer_visible": false,
-      "rating_enabled": false
-    }
-  }
-}
-```
-
----
-
-# TIGOKU RATING TITLE SYSTEM
-
-```json
-{
-  "titles": [
-    { "min_rating": 800, "title": "Novice" },
-    { "min_rating": 1000, "title": "Solver" },
-    { "min_rating": 1200, "title": "Strategist" },
-    { "min_rating": 1400, "title": "Logician" },
-    { "min_rating": 1600, "title": "Infernal Mind" },
-    { "min_rating": 1800, "title": "Tigoku Master" }
-  ]
-}
-```
-
----
-
-# COMPETITIVE PHILOSOPHY
-
-- No RNG in puzzles.
-- Loss only caused by player mistake.
-- Rating reflects real logical capability.
-- Difficulty mathematically classified.
-- Image-generated puzzles still solver-verified.
-
----
-
-# FUTURE EXPANSION RESERVED
-
-- 30x30 Inferno Boards
-- Weekly Hardcore Challenge
-- Time Attack Mode
-- Ranked Ladder Season Reset
-- Custom Puzzle Sharing (offline QR export)
-
----
-
-END BRAND SPEC
-
-
----
-
-# NONOGRAM SIZE TIER POLICY (IMPLEMENTED)
-
-Based on gameplay onboarding guidance:
-
-- Easy: around 5x5 (current implementation default: 5x5)
-- Medium: around 10x10 (current implementation default: 10x10)
-- Hard: around 15x15 (current implementation default: 15x15)
-
-Notes:
-- Board size tier and logic difficulty classification are tracked separately.
-- Logic difficulty remains solver-metric based.
+- `README.md`
+- `AGENTS.md`
+- `CLAUDE.md`

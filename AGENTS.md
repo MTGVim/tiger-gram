@@ -1,15 +1,16 @@
 # Repository Guidelines
 
 ## Project Structure & Module Organization
-This repository is currently spec-first and centered on `CLAUDE.md`, which defines product, architecture, and brand requirements for tigoku-gram.
+This repository is implementation-first. `CLAUDE.md` is a living implementation snapshot and must be kept aligned with real code behavior.
 
 When implementing code, use this layout:
 - `src/features/nonogram/` Nonogram engine, solver, generator, and related React UI.
 - `src/features/sudoku/` Sudoku generator, solver, and difficulty classifier UI.
 - `src/components/` shared React components (buttons, modals, layout).
 - `src/lib/` shared utilities (rating, streaks, persistence, validation).
+- `src/pages/` route-level page components (`Landing`, `Nonogram`, `Sudoku`).
 - `src/styles/` Tailwind entry CSS and design tokens.
-- `public/` static assets (icons, manifest, offline assets).
+- `public/` static assets (icons, concept image, sounds).
 - `tests/` unit/integration tests mirrored by module path.
 
 ## Build, Test, and Development Commands
@@ -31,6 +32,7 @@ If you add tooling, update this file in the same PR.
 - Tailwind: prefer utility classes in JSX; extract repeated patterns into reusable components instead of long class strings.
 - Keep shared color/spacing tokens in Tailwind config; avoid ad-hoc inline styles unless dynamic values are required.
 - Prefer pure, deterministic solver functions; isolate side effects to storage/UI boundaries.
+- Use `localStorage` through `src/lib/persistence.ts` (current key prefix: `tiger-gram:`).
 
 ## Testing Guidelines
 - Framework: Vitest + React Testing Library.
@@ -57,3 +59,7 @@ When implementing or updating nonogram generation, use this board-size mapping:
 - `hard`: `15x15`
 
 Keep size-tier selection separate from solver-based logic difficulty classification.
+
+## Difficulty Query Policy (Current Behavior)
+- Legacy alias: `difficulty=expert` maps to `hard` (both nonogram/sudoku tier parser).
+- Unknown `difficulty` query values currently fall back to `easy`.

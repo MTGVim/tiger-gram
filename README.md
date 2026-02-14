@@ -1,20 +1,33 @@
-# tigoku-gram
+# TigerGram
 
-노노그램과 스도쿠를 플레이할 수 있는 React + TypeScript 기반 로직 퍼즐 웹 앱입니다.
+TigerGram은 노노그램과 스도쿠를 하나의 UI에서 플레이할 수 있는 React + TypeScript 기반 로직 퍼즐 웹 앱입니다.
 
-## 주요 기능
-- 노노그램/스도쿠 탭 전환
-- 노노그램 난이도별 랜덤 퍼즐 생성(쉬움/보통/어려움)
-- 스도쿠 난이도별 랜덤 퍼즐 생성(쉬움/보통/어려움)
-- 두 퍼즐 모두 보드 영역 반응형 스케일링(`w-full`, `max-width: 800px`)
-- 노노그램 생성 진행률/상태 표시(워커 기반)
+## 현재 구현 기능
+- 라우팅: `/`, `/nonogram`, `/sudoku`
+- 공통 UI 셸 + 게임 탭 네비게이션
+- 노노그램
+  - 쉬움/보통/어려움 티어별 퍼즐 생성
+  - Web Worker 기반 비동기 생성 + 진행률 표시
+  - 유일해(Unique solution) 검증 기반 생성
+  - 솔버 메트릭 기반 로직 난이도(`easy|medium|hard|expert`) 표시
+  - 드래그 칠하기/지우기, 우클릭 사이클 입력
+- 스도쿠
+  - 쉬움/보통/어려움 티어별 퍼즐 생성
+  - 유일해 검증 기반 퍼즐 조각내기(carving)
+  - 메모 모드, 숫자 패드 입력, 선택 하이라이트
+  - 솔버 사용 기법 기반 로직 난이도(`easy|medium|hard|expert`) 표시
+- 공통 게임 기능
+  - 타이머, 재시작, 새 퍼즐, 포기
+  - 승리 애니메이션(컨페티) + 효과음 + 음소거 토글
+  - 로컬 리더보드(게임/난이도별 기록)
+  - `localStorage` 영속화(`tiger-gram:*` prefix)
 
 ## 기술 스택
-- React
-- TypeScript
-- Vite
+- React 19
+- TypeScript (strict)
+- Vite 6
 - Tailwind CSS
-- Vitest
+- Vitest + React Testing Library
 
 ## 시작하기
 ```bash
@@ -24,37 +37,26 @@ yarn dev
 
 ## 스크립트
 - `yarn dev`: 개발 서버 실행
-- `yarn build`: 프로덕션 빌드
-- `yarn preview`: 빌드 결과 미리보기
+- `yarn build`: 타입체크 + 프로덕션 빌드
+- `yarn preview`: 빌드 결과 로컬 확인
 - `yarn test`: 테스트 실행
-- `yarn lint`: 린트 실행
+- `yarn test:watch`: 테스트 watch 모드
+- `yarn lint`: ESLint 실행
 
-## GitHub Pages 배포
-- 워크플로우: `.github/workflows/deploy-pages.yml`
-- 트리거: `main` 브랜치 push 또는 수동 실행(`workflow_dispatch`)
-- 배포 산출물: `dist/` (`index.html`을 `404.html`로 복사해 SPA 라우팅 지원)
-
-### 저장소 설정
-1. GitHub 저장소 `Settings > Pages`로 이동
-2. `Source`를 `GitHub Actions`로 선택
-3. `main`에 푸시하면 자동 배포
-
-## 난이도 정책
-### 노노그램 크기 티어
+## 난이도/티어 정책
+### 노노그램 보드 크기
 - `easy`: `5x5`
 - `medium`: `10x10`
 - `hard`: `15x15`
 
-### 스도쿠 티어
-- `easy`
-- `medium`
-- `hard`
+### 티어 파라미터 파싱
+- `difficulty=expert`는 하위 호환으로 `hard`에 매핑
+- 알 수 없는 값은 현재 구현에서 `easy`로 폴백
 
-참고: 과거 URL 파라미터로 `difficulty=expert`가 들어오면 내부적으로 `hard`로 매핑됩니다.
-
-## 에셋
-- 파비콘: `public/favicon.png`
-- 컨셉 이미지: `public/concept.png`
+## 배포
+- GitHub Pages 워크플로우: `.github/workflows/deploy-pages.yml`
+- `main` push 또는 수동 실행 시 `dist/` 배포
+- SPA 라우팅 fallback을 위해 `dist/index.html`을 `dist/404.html`로 복사
 
 ## 저장소
-- https://github.com/MTGVim/tigoku-gram
+- https://github.com/MTGVim/tiger-gram

@@ -9,7 +9,7 @@ describe('persistence', () => {
 
   it('returns fallback on missing or invalid payload', () => {
     expect(loadLocal('missing', { ok: true })).toEqual({ ok: true });
-    localStorage.setItem('tigoku-gram:bad', '{not-json}');
+    localStorage.setItem('tiger-gram:bad', '{not-json}');
     expect(loadLocal('bad', { ok: false })).toEqual({ ok: false });
   });
 });

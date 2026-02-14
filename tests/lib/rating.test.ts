@@ -28,7 +28,7 @@ describe('rating', () => {
 
   it('applies clamps and titles', () => {
     expect(applyRating(2999, 40)).toBe(3000);
-    expect(ratingTitle(1800)).toBe('Tigoku Master');
+    expect(ratingTitle(1800)).toBe('Tiger Master');
     expect(defaultRating()).toBe(1000);
   });
 

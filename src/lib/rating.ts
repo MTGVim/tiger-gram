@@ -53,7 +53,7 @@ export function defaultRating(): number {
 }
 
 export function ratingTitle(rating: number): string {
-  if (rating >= 1800) return 'Tigoku Master';
+  if (rating >= 1800) return 'Tiger Master';
   if (rating >= 1600) return 'Infernal Mind';
   if (rating >= 1400) return 'Logician';
   if (rating >= 1200) return 'Strategist';

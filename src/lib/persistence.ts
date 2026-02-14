@@ -1,4 +1,4 @@
-const PREFIX = 'tigoku-gram:';
+const PREFIX = 'tiger-gram:';
 
 export function saveLocal<T>(key: string, value: T): void {
   localStorage.setItem(`${PREFIX}${key}`, JSON.stringify(value));
