@@ -60,12 +60,17 @@ export function SudokuBoard({
   const selectedValue = selectedIndex !== null ? grid[selectedIndex] : 0;
   const highlightRows = new Set<number>();
   const highlightCols = new Set<number>();
+  const highlightBoxes = new Set<number>();
 
   if (selectedValue > 0) {
     grid.forEach((value, index) => {
       if (value !== selectedValue) return;
-      highlightRows.add(Math.floor(index / 9));
-      highlightCols.add(index % 9);
+      const row = Math.floor(index / 9);
+      const col = index % 9;
+      const box = Math.floor(row / 3) * 3 + Math.floor(col / 3);
+      highlightRows.add(row);
+      highlightCols.add(col);
+      highlightBoxes.add(box);
     });
   }
 
@@ -81,27 +86,33 @@ export function SudokuBoard({
           <div ref={contentRef} className="w-[800px]" style={{ transform: `scale(${scale})`, transformOrigin: 'top left' }}>
             <div className="mx-auto w-fit">
               <div className="grid w-fit grid-cols-9 gap-0 rounded-md bg-[#efefef] p-1">
-                {grid.map((value, index) => (
-                  <button
-                    type="button"
-                    disabled={locked}
-                    onClick={() => onSelect(index)}
-                    key={index}
-                    className={`flex h-12 w-12 items-center justify-center rounded-none font-mono text-base ${cellBorderClass(index)} ${
-                      selectedIndex === index
-                        ? 'bg-sky-200 text-sky-900'
-                        : selectedValue > 0 && value === selectedValue
-                          ? 'bg-amber-100 text-amber-900'
-                          : selectedValue > 0 && (highlightRows.has(Math.floor(index / 9)) || highlightCols.has(index % 9))
-                            ? 'bg-sky-100/60 text-slate-900'
-                            : fixed[index]
-                              ? 'bg-slate-300 text-slate-900'
-                              : 'bg-transparent text-slate-800'
-                    }`}
-                  >
-                    {value || '·'}
-                  </button>
-                ))}
+                {grid.map((value, index) => {
+                  const row = Math.floor(index / 9);
+                  const col = index % 9;
+                  const box = Math.floor(row / 3) * 3 + Math.floor(col / 3);
+                  const inHighlightLine = highlightRows.has(row) || highlightCols.has(col) || highlightBoxes.has(box);
+                  return (
+                    <button
+                      type="button"
+                      disabled={locked}
+                      onClick={() => onSelect(index)}
+                      key={index}
+                      className={`flex h-12 w-12 items-center justify-center rounded-none font-mono text-base ${cellBorderClass(index)} ${
+                        selectedIndex === index
+                          ? 'bg-sky-200 text-sky-900'
+                          : selectedValue > 0 && value === selectedValue
+                            ? 'bg-amber-100 text-amber-900'
+                            : selectedValue > 0 && inHighlightLine
+                              ? 'bg-sky-100/60 text-slate-900'
+                              : fixed[index]
+                                ? 'bg-slate-300 text-slate-900'
+                                : 'bg-transparent text-slate-800'
+                      }`}
+                    >
+                      {value || '·'}
+                    </button>
+                  );
+                })}
               </div>
               <div className="mt-4 grid w-fit grid-cols-5 gap-1">
                 {Array.from({ length: 9 }, (_, index) => (
