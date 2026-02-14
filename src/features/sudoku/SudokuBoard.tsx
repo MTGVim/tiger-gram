@@ -57,7 +57,7 @@ export function SudokuBoard({
       observer.disconnect();
       window.removeEventListener('resize', updateScale);
     };
-  }, []);
+  }, [BASE_WIDTH]);
 
   const cellBorderClass = (index: number): string => {
     const row = Math.floor(index / 9);
