@@ -20,7 +20,6 @@ type WorkerResponse = {
 };
 
 const DIFFICULTY_LABELS: Record<NonogramSizeTier, string> = {
-  veryeasy: '아주쉬움',
   easy: '쉬움',
   medium: '보통',
   hard: '어려움'
@@ -207,11 +206,14 @@ export function NonogramPage() {
 
   const setDifficulty = useCallback(
     (tier: NonogramSizeTier) => {
+      if (tier !== sizeTier) {
+        setSeed((prev) => prev + 1);
+      }
       const next = new URLSearchParams(searchParams);
       next.set('difficulty', tier);
       setSearchParams(next, { replace: true });
     },
-    [searchParams, setSearchParams]
+    [searchParams, setSearchParams, sizeTier]
   );
 
   const statusLabel = useMemo(() => (isGenerating ? '생성중' : STATE_LABELS[state]), [isGenerating, state]);

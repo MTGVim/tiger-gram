@@ -61,13 +61,14 @@ export function NonogramBoard({
 
   const maxRowClues = Math.max(...rowClues.map((clue) => clue.length));
   const maxColClues = Math.max(...colClues.map((clue) => clue.length));
-  const size = board.length;
-  const cellSize = size <= 5 ? 12 : size <= 10 ? 10 : size <= 15 ? 8 : 7;
-  const clueCell = Math.max(7, cellSize - 1);
-  const hintFontSize = size <= 10 ? 14 : 13;
-  const cellFontSize = size <= 10 ? 13 : 12;
-  const rowClueWidth = Math.min(maxRowClues * (clueCell + 4) + 8, 160);
-  const colClueHeight = maxColClues * (clueCell + 2) + 4;
+  const boardSize = board.length;
+  const cellScale = boardSize <= 5 ? 2 : boardSize <= 10 ? 1.5 : 1;
+  const cellSize = Math.round(40 * cellScale);
+  const clueCellSize = 40;
+  const hintFontSize = 15;
+  const cellFontSize = Math.max(12, Math.round(14 * cellScale));
+  const rowClueWidth = Math.min(maxRowClues * 16 + 10, 200);
+  const colClueHeight = maxColClues * 18 + 10;
 
   const isRowSatisfied = (rowIndex: number): boolean => {
     const row = board[rowIndex];
@@ -105,8 +106,8 @@ export function NonogramBoard({
                   {colClues.map((clue, index) => (
                     <div
                       key={`cc-${index}`}
-                      className="flex flex-col items-center justify-end gap-0.5 pb-0.5 font-mono text-slate-800"
-                      style={{ width: clueCell, height: colClueHeight, fontSize: hintFontSize }}
+                      className="flex flex-col items-center justify-end gap-0.5 pb-1 font-mono font-bold text-slate-800"
+                      style={{ width: clueCellSize, height: colClueHeight, fontSize: hintFontSize }}
                     >
                       {clue.map((value, i) => (
                         <span key={`cc-${index}-${i}`} className="leading-none">
@@ -122,7 +123,7 @@ export function NonogramBoard({
                 {board.map((row, r) => (
                   <div key={`row-${r}`} className="flex gap-1">
                     <div
-                      className={`flex items-center justify-end gap-1 pr-1 font-mono ${isRowSatisfied(r) ? 'text-emerald-600' : 'text-slate-800'}`}
+                      className={`flex items-center justify-end gap-1 pr-1 font-mono font-bold ${isRowSatisfied(r) ? 'text-emerald-600' : 'text-slate-800'}`}
                       style={{ width: rowClueWidth, height: cellSize, fontSize: hintFontSize }}
                     >
                       {rowClues[r].map((value, i) => (

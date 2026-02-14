@@ -1,21 +1,19 @@
 import type { Cell, Grid, NonogramPuzzle } from './types';
 
-export type NonogramSizeTier = 'veryeasy' | 'easy' | 'medium' | 'hard';
+export type NonogramSizeTier = 'easy' | 'medium' | 'hard';
 
 const SIZE_OPTIONS: Record<NonogramSizeTier, number[]> = {
-  veryeasy: [5],
-  easy: [10],
-  medium: [15],
-  hard: [20]
+  easy: [5],
+  medium: [10],
+  hard: [15]
 };
 
 export const MAX_UNIQUE_ATTEMPTS = 128;
 
 const FILL_PROFILES: Record<NonogramSizeTier, number[]> = {
-  veryeasy: [0.35, 0.45, 0.55],
-  easy: [0.4, 0.5, 0.6],
-  medium: [0.35, 0.45, 0.55, 0.65],
-  hard: [0.3, 0.38, 0.46, 0.54, 0.62, 0.7]
+  easy: [0.35, 0.45, 0.55],
+  medium: [0.4, 0.5, 0.6],
+  hard: [0.35, 0.45, 0.55, 0.65]
 };
 
 type ColState = {
@@ -218,10 +216,11 @@ export function candidateSizesForDifficulty(tier: NonogramSizeTier, seed: number
 }
 
 export function parseNonogramSizeTier(value: string | null | undefined): NonogramSizeTier {
-  if (value === 'veryeasy' || value === 'very-easy') return 'veryeasy';
   if (value === 'easy') return 'easy';
+  if (value === 'veryeasy' || value === 'very-easy') return 'easy';
+  if (value === 'normal') return 'medium';
   if (value === 'hard') return 'hard';
-  if (value === 'expert') return 'hard';
+  if (value === 'expert') return 'hard'; // legacy alias
   return 'medium';
 }
 

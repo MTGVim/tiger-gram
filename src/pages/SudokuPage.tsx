@@ -109,11 +109,14 @@ export function SudokuPage() {
 
   const setDifficulty = useCallback(
     (nextTier: SudokuTier) => {
+      if (nextTier !== tier) {
+        setSeed((prev) => prev + 1);
+      }
       const next = new URLSearchParams(searchParams);
       next.set('difficulty', nextTier);
       setSearchParams(next, { replace: true });
     },
-    [searchParams, setSearchParams]
+    [searchParams, setSearchParams, tier]
   );
 
   return (

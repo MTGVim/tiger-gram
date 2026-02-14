@@ -7,8 +7,8 @@ import {
 
 describe('nonogram size tiers', () => {
   it('parses difficulty from query string', () => {
-    expect(parseNonogramSizeTier('veryeasy')).toBe('veryeasy');
-    expect(parseNonogramSizeTier('very-easy')).toBe('veryeasy');
+    expect(parseNonogramSizeTier('veryeasy')).toBe('easy');
+    expect(parseNonogramSizeTier('very-easy')).toBe('easy');
     expect(parseNonogramSizeTier('easy')).toBe('easy');
     expect(parseNonogramSizeTier('hard')).toBe('hard');
     expect(parseNonogramSizeTier('expert')).toBe('hard');
@@ -17,16 +17,15 @@ describe('nonogram size tiers', () => {
   });
 
   it('maps tier to board sizes', () => {
-    expect(sizeForDifficulty('veryeasy', 42)).toBe(5);
-    expect(sizeForDifficulty('easy', 42)).toBe(10);
-    expect(sizeForDifficulty('medium', 42)).toBe(15);
-    expect(sizeForDifficulty('hard', 42)).toBe(20);
+    expect(sizeForDifficulty('easy', 42)).toBe(5);
+    expect(sizeForDifficulty('medium', 42)).toBe(10);
+    expect(sizeForDifficulty('hard', 42)).toBe(15);
   });
 
   it('generates puzzle using tier size', () => {
     const puzzle = generateNonogramByDifficulty(3, 'medium');
-    expect(puzzle.size).toBe(15);
-    expect(puzzle.rowClues).toHaveLength(15);
-    expect(puzzle.colClues).toHaveLength(15);
+    expect(puzzle.size).toBe(10);
+    expect(puzzle.rowClues).toHaveLength(10);
+    expect(puzzle.colClues).toHaveLength(10);
   });
 });

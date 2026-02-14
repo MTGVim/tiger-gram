@@ -462,10 +462,9 @@ END BRAND SPEC
 
 Based on gameplay onboarding guidance:
 
-- Very Easy: around 5x5 (current implementation default: 5x5)
-- Easy: around 10x10 (current implementation default: 10x10)
-- Medium: around 15x15 (current implementation default: 15x15)
-- Hard: around 20x20 (current implementation default: 20x20)
+- Easy: around 5x5 (current implementation default: 5x5)
+- Medium: around 10x10 (current implementation default: 10x10)
+- Hard: around 15x15 (current implementation default: 15x15)
 
 Notes:
 - Board size tier and logic difficulty classification are tracked separately.
