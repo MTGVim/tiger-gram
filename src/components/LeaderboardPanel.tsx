@@ -21,6 +21,12 @@ function formatDate(timestamp: number): string {
   }).format(new Date(timestamp));
 }
 
+function formatDuration(seconds: number): string {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+}
+
 export function LeaderboardPanel({ game, entries, difficultyLabels, onClear }: LeaderboardPanelProps) {
   const [collapsed, setCollapsed] = useState(true);
   const difficulties = useMemo(() => Object.keys(difficultyLabels), [difficultyLabels]);
@@ -86,7 +92,7 @@ export function LeaderboardPanel({ game, entries, difficultyLabels, onClear }: L
                     <div key={entry.id} className="grid grid-cols-[28px_1fr_auto] items-center gap-2 rounded-md border border-white/10 bg-black/20 px-2 py-1">
                       <span className="font-mono text-xs text-white/60">#{index + 1}</span>
                       <span className="font-mono text-[11px] text-white/60">{formatDate(entry.createdAt)}</span>
-                      <span className="font-mono text-xs text-white">{entry.seconds}s</span>
+                      <span className="font-mono text-xs text-white">{formatDuration(entry.seconds)}</span>
                     </div>
                   ))}
                 </div>
