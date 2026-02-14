@@ -70,6 +70,7 @@ export function SudokuBoard({
   };
 
   const selectedValue = selectedIndex !== null ? grid[selectedIndex] : 0;
+  const lineHighlight = new Set<number>();
   const conflictIndices = new Set<number>();
 
   const registerConflicts = (indices: number[]) => {
@@ -105,6 +106,20 @@ export function SudokuBoard({
       }
       registerConflicts(indices);
     }
+  }
+
+  if (selectedValue > 0) {
+    grid.forEach((value, index) => {
+      if (value !== selectedValue) return;
+      const row = Math.floor(index / 9);
+      const col = index % 9;
+      for (let c = 0; c < 9; c += 1) {
+        lineHighlight.add(row * 9 + c);
+      }
+      for (let r = 0; r < 9; r += 1) {
+        lineHighlight.add(r * 9 + col);
+      }
+    });
   }
 
   const selectionLocked = selectedIndex === null ? true : fixed[selectedIndex];
@@ -145,8 +160,10 @@ export function SudokuBoard({
                           ? 'bg-rose-200 text-rose-900'
                           : selectedIndex === index
                           ? 'bg-sky-200 text-sky-900'
-                          : selectedValue > 0 && value === selectedValue
-                            ? 'bg-amber-100 text-amber-900'
+                            : selectedValue > 0 && value === selectedValue
+                              ? 'bg-amber-100 text-amber-900'
+                            : selectedValue > 0 && lineHighlight.has(index)
+                              ? 'bg-sky-50/70 text-slate-900'
                             : fixed[index]
                                 ? 'bg-slate-300 text-slate-900'
                                 : 'bg-transparent text-slate-800'
