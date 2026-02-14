@@ -1,0 +1,23 @@
+{
+  "name": "TigerGram",
+  "short_name": "TigerGram",
+  "description": "노노그램과 스도쿠를 한곳에서 즐기는 로직 퍼즐 플랫폼",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0F0F14",
+  "theme_color": "#0F0F14",
+  "lang": "ko",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

@@ -136,15 +136,18 @@ Vite `base`는 `GITHUB_ACTIONS` / `GITHUB_REPOSITORY` 환경변수 기반으로 
 
 ---
 
-## 8. Not Implemented Yet
+## 8. Partial / Not Implemented Yet
 
 아래 항목은 현재 코드에 구현되어 있지 않다.
 
-- PWA/service worker/offline cache
 - IndexedDB 저장소
 - 이미지 -> 노노그램 변환 파이프라인
 - 일간 퍼즐(Daily puzzle)
 - 서버/클라우드 기반 글로벌 랭킹
+
+현재 부분 구현:
+- PWA manifest + service worker 기반 기본 설치/캐시 동작
+- 완전한 오프라인 퍼스트 전략(정교한 runtime 전략/버전 정책)은 미구현
 
 ---
 

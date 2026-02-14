@@ -25,17 +25,23 @@ export function NonogramBoard({
   const BASE_WIDTH = 800;
   const draggingRef = useRef(false);
   const dragFillRef = useRef(true);
+  const lastDraggedCellRef = useRef<string | null>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
   const [scaledHeight, setScaledHeight] = useState(0);
 
   useEffect(() => {
-    const handleMouseUp = () => {
+    const stopDragging = () => {
       draggingRef.current = false;
+      lastDraggedCellRef.current = null;
     };
-    window.addEventListener('mouseup', handleMouseUp);
-    return () => window.removeEventListener('mouseup', handleMouseUp);
+    window.addEventListener('pointerup', stopDragging);
+    window.addEventListener('pointercancel', stopDragging);
+    return () => {
+      window.removeEventListener('pointerup', stopDragging);
+      window.removeEventListener('pointercancel', stopDragging);
+    };
   }, []);
 
   useLayoutEffect(() => {
@@ -110,6 +116,14 @@ export function NonogramBoard({
     return normalizedRuns.length === target.length && normalizedRuns.every((value, i) => value === target[i]);
   };
 
+  const applyDragCell = (row: number, col: number) => {
+    const key = `${row}-${col}`;
+    if (lastDraggedCellRef.current === key) return;
+    lastDraggedCellRef.current = key;
+    if (dragFillRef.current) onPaintCell(row, col);
+    else onEraseCell(row, col);
+  };
+
   return (
     <section
       className="box-border max-w-full overflow-hidden rounded-2xl border border-slate-400/60 bg-[#e7e7e7] p-3 text-slate-900 sm:p-4"
@@ -140,7 +154,21 @@ export function NonogramBoard({
                 </div>
               </div>
 
-              <div className="space-y-1">
+              <div
+                className="space-y-1"
+                style={{ touchAction: 'none' }}
+                onPointerMove={(event) => {
+                  if (!draggingRef.current || locked) return;
+                  if (event.pointerType !== 'mouse') event.preventDefault();
+                  const target = document.elementFromPoint(event.clientX, event.clientY) as HTMLElement | null;
+                  const button = target?.closest('button[data-nonogram-cell="true"]') as HTMLButtonElement | null;
+                  if (!button) return;
+                  const row = Number(button.dataset.row);
+                  const col = Number(button.dataset.col);
+                  if (Number.isNaN(row) || Number.isNaN(col)) return;
+                  applyDragCell(row, col);
+                }}
+              >
                 {board.map((row, r) => (
                   <div key={`row-${r}`} className="flex gap-1">
                     <div
@@ -157,19 +185,18 @@ export function NonogramBoard({
                     {row.map((cell, c) => (
                       <button
                         type="button"
+                        data-nonogram-cell="true"
+                        data-row={r}
+                        data-col={c}
                         disabled={locked}
-                        onMouseDown={(event) => {
-                          if (event.button !== 0) return;
+                        onPointerDown={(event) => {
+                          if (event.pointerType === 'mouse' && event.button !== 0) return;
+                          if (event.pointerType !== 'mouse') event.preventDefault();
                           draggingRef.current = true;
                           const shouldFill = board[r][c] !== 1;
                           dragFillRef.current = shouldFill;
-                          if (shouldFill) onPaintCell(r, c);
-                          else onEraseCell(r, c);
-                        }}
-                        onMouseEnter={() => {
-                          if (!draggingRef.current) return;
-                          if (dragFillRef.current) onPaintCell(r, c);
-                          else onEraseCell(r, c);
+                          lastDraggedCellRef.current = null;
+                          applyDragCell(r, c);
                         }}
                         onContextMenu={(event) => {
                           event.preventDefault();

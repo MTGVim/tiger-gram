@@ -60,6 +60,12 @@ yarn dev
 - GitHub Pages 경로: `https://mtgvim.github.io/tiger-gram/`
 - 정적 에셋은 `import.meta.env.BASE_URL` 기준 경로를 사용해 하위 경로 배포를 지원
 
+## PWA / 오프라인
+- PWA 매니페스트: `public/manifest.webmanifest`
+- 서비스 워커: `public/sw.js` (프로덕션 빌드에서 등록)
+- 설치 제안(`beforeinstallprompt`) 노출 시점은 브라우저 정책(HTTPS, 사용 패턴)에 따라 다름
+- 최소 오프라인 지원: 한 번 방문한 리소스의 재방문 캐시 + 라우트 fallback
+
 ## 에셋
 - 랜딩 이미지: `public/concept.png` (`src/pages/LandingPage.tsx`에서 사용)
 - 승리 효과음: `public/sounds/victory-fanfare.mp3`
