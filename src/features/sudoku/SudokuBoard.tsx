@@ -70,6 +70,42 @@ export function SudokuBoard({
   };
 
   const selectedValue = selectedIndex !== null ? grid[selectedIndex] : 0;
+  const conflictIndices = new Set<number>();
+
+  const registerConflicts = (indices: number[]) => {
+    const seen = new Map<number, number[]>();
+    indices.forEach((index) => {
+      const value = grid[index];
+      if (value === 0) return;
+      const bucket = seen.get(value) ?? [];
+      bucket.push(index);
+      seen.set(value, bucket);
+    });
+    seen.forEach((bucket) => {
+      if (bucket.length < 2) return;
+      bucket.forEach((index) => conflictIndices.add(index));
+    });
+  };
+
+  for (let row = 0; row < 9; row += 1) {
+    registerConflicts(Array.from({ length: 9 }, (_, col) => row * 9 + col));
+  }
+
+  for (let col = 0; col < 9; col += 1) {
+    registerConflicts(Array.from({ length: 9 }, (_, row) => row * 9 + col));
+  }
+
+  for (let boxRow = 0; boxRow < 3; boxRow += 1) {
+    for (let boxCol = 0; boxCol < 3; boxCol += 1) {
+      const indices: number[] = [];
+      for (let r = 0; r < 3; r += 1) {
+        for (let c = 0; c < 3; c += 1) {
+          indices.push((boxRow * 3 + r) * 9 + (boxCol * 3 + c));
+        }
+      }
+      registerConflicts(indices);
+    }
+  }
 
   const selectionLocked = selectedIndex === null ? true : fixed[selectedIndex];
   const editableSelected = selectedIndex !== null && !selectionLocked;
@@ -105,7 +141,9 @@ export function SudokuBoard({
                       onClick={() => onSelect(index)}
                       key={index}
                       className={`relative flex items-center justify-center rounded-none font-mono text-xl font-bold ${cellBorderClass(index)} ${
-                        selectedIndex === index
+                        conflictIndices.has(index)
+                          ? 'bg-rose-200 text-rose-900'
+                          : selectedIndex === index
                           ? 'bg-sky-200 text-sky-900'
                           : selectedValue > 0 && value === selectedValue
                             ? 'bg-amber-100 text-amber-900'
