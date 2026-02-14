@@ -7,6 +7,7 @@ type NonogramBoardProps = {
   colClues: number[][];
   onCycleCell: (row: number, col: number) => void;
   onPaintCell: (row: number, col: number) => void;
+  onEraseCell: (row: number, col: number) => void;
   conflictCells?: Set<string>;
   locked?: boolean;
 };
@@ -17,11 +18,13 @@ export function NonogramBoard({
   colClues,
   onCycleCell,
   onPaintCell,
+  onEraseCell,
   conflictCells,
   locked = false
 }: NonogramBoardProps) {
   const BASE_WIDTH = 800;
   const draggingRef = useRef(false);
+  const dragFillRef = useRef(true);
   const viewportRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
@@ -58,8 +61,8 @@ export function NonogramBoard({
 
   const maxRowClues = Math.max(...rowClues.map((clue) => clue.length));
   const maxColClues = Math.max(...colClues.map((clue) => clue.length));
-  const rowClueWidth = Math.min(maxRowClues * 18 + 12, 220);
-  const colClueHeight = maxColClues * 22 + 12;
+  const rowClueWidth = Math.min(maxRowClues * 16 + 10, 200);
+  const colClueHeight = maxColClues * 18 + 10;
 
   const isRowSatisfied = (rowIndex: number): boolean => {
     const row = board[rowIndex];
@@ -97,7 +100,7 @@ export function NonogramBoard({
                   {colClues.map((clue, index) => (
                     <div
                       key={`cc-${index}`}
-                      className="flex w-12 flex-col items-center justify-end gap-0.5 pb-1 font-mono text-sm text-slate-800"
+                      className="flex w-10 flex-col items-center justify-end gap-0.5 pb-1 font-mono text-[13px] text-slate-800"
                       style={{ height: colClueHeight }}
                     >
                       {clue.map((value, i) => (
@@ -114,7 +117,7 @@ export function NonogramBoard({
                 {board.map((row, r) => (
                   <div key={`row-${r}`} className="flex gap-1">
                     <div
-                      className={`flex h-12 items-center justify-end gap-1 pr-1 font-mono text-sm ${isRowSatisfied(r) ? 'text-emerald-600' : 'text-slate-800'}`}
+                      className={`flex h-10 items-center justify-end gap-1 pr-1 font-mono text-[13px] ${isRowSatisfied(r) ? 'text-emerald-600' : 'text-slate-800'}`}
                       style={{ width: rowClueWidth }}
                     >
                       {rowClues[r].map((value, i) => (
@@ -131,27 +134,27 @@ export function NonogramBoard({
                         onMouseDown={(event) => {
                           if (event.button !== 0) return;
                           draggingRef.current = true;
-                          onCycleCell(r, c);
+                          const shouldFill = board[r][c] !== 1;
+                          dragFillRef.current = shouldFill;
+                          if (shouldFill) onPaintCell(r, c);
+                          else onEraseCell(r, c);
                         }}
                         onMouseEnter={() => {
                           if (!draggingRef.current) return;
-                          onPaintCell(r, c);
+                          if (dragFillRef.current) onPaintCell(r, c);
+                          else onEraseCell(r, c);
                         }}
                         onContextMenu={(event) => {
                           event.preventDefault();
                           onCycleCell(r, c);
                         }}
                         key={`${r}-${c}`}
-                        className={`flex h-12 w-12 items-center justify-center rounded-sm border border-slate-500/70 font-mono text-base transition-transform active:scale-95 ${
+                        className={`flex h-10 w-10 items-center justify-center rounded-sm border border-slate-500/70 font-mono text-sm transition-transform active:scale-95 ${
                           cell === 1
                             ? 'bg-slate-600 text-slate-100'
-                            : cell === 0
-                              ? 'bg-slate-300/70 text-slate-600'
-                              : 'bg-[#efefef] text-slate-500'
+                            : 'bg-[#efefef] text-slate-500'
                         } ${conflictCells?.has(`${r}-${c}`) ? 'animate-pulse border-rose-500 bg-rose-200' : ''}`}
-                      >
-                        {cell === 0 ? 'x' : ''}
-                      </button>
+                      />
                     ))}
                   </div>
                 ))}

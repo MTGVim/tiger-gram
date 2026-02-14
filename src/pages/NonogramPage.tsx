@@ -152,8 +152,22 @@ export function NonogramPage() {
       if (!model || state !== 'playing' || isGenerating) return;
       setBoard((prev) => {
         const next = prev.map((line) => [...line]);
-        const current = prev[row][col];
-        next[row][col] = current === -1 ? 1 : current === 1 ? 0 : -1;
+        next[row][col] = prev[row][col] === 1 ? -1 : 1;
+        completeIfSolved(next);
+        return next;
+      });
+    },
+    [completeIfSolved, isGenerating, model, state]
+  );
+
+  const handleSetCell = useCallback(
+    (row: number, col: number, fill: boolean) => {
+      if (!model || state !== 'playing' || isGenerating) return;
+      setBoard((prev) => {
+        const nextValue = fill ? 1 : -1;
+        if (prev[row][col] === nextValue) return prev;
+        const next = prev.map((line) => [...line]);
+        next[row][col] = nextValue;
         completeIfSolved(next);
         return next;
       });
@@ -163,16 +177,16 @@ export function NonogramPage() {
 
   const handlePaintCell = useCallback(
     (row: number, col: number) => {
-      if (!model || state !== 'playing' || isGenerating) return;
-      setBoard((prev) => {
-        if (prev[row][col] === 1) return prev;
-        const next = prev.map((line) => [...line]);
-        next[row][col] = 1;
-        completeIfSolved(next);
-        return next;
-      });
+      handleSetCell(row, col, true);
     },
-    [completeIfSolved, isGenerating, model, state]
+    [handleSetCell]
+  );
+
+  const handleEraseCell = useCallback(
+    (row: number, col: number) => {
+      handleSetCell(row, col, false);
+    },
+    [handleSetCell]
   );
 
   const restart = useCallback(() => {
@@ -280,6 +294,7 @@ export function NonogramPage() {
             colClues={model.puzzle.colClues}
             onCycleCell={handleCycleCell}
             onPaintCell={handlePaintCell}
+            onEraseCell={handleEraseCell}
             locked={state !== 'playing' || isGenerating}
           />
         ) : (
