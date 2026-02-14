@@ -166,7 +166,7 @@ export function SudokuBoard({
                           ))}
                         </div>
                       ) : (
-                        '·'
+                        ''
                       )}
                     </button>
                   );
