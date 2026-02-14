@@ -58,5 +58,9 @@ yarn dev
 - `main` push 또는 수동 실행 시 `dist/` 배포
 - SPA 라우팅 fallback을 위해 `dist/index.html`을 `dist/404.html`로 복사
 
+## 에셋
+- 랜딩 이미지: `public/concept.png` (`src/pages/LandingPage.tsx`에서 사용)
+- 승리 효과음: `public/sounds/victory-fanfare.mp3`
+
 ## 저장소
 - https://github.com/MTGVim/tiger-gram

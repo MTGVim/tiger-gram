@@ -10,7 +10,7 @@ When implementing code, use this layout:
 - `src/lib/` shared utilities (rating, streaks, persistence, validation).
 - `src/pages/` route-level page components (`Landing`, `Nonogram`, `Sudoku`).
 - `src/styles/` Tailwind entry CSS and design tokens.
-- `public/` static assets (icons, concept image, sounds).
+- `public/` static assets (icons, `concept.png`, `sounds/victory-fanfare.mp3`).
 - `tests/` unit/integration tests mirrored by module path.
 
 ## Build, Test, and Development Commands
