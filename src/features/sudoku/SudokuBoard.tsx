@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { SudokuGrid } from './types';
 
 type SudokuBoardProps = {
@@ -27,21 +27,21 @@ export function SudokuBoard({
   locked = false
 }: SudokuBoardProps) {
   const BASE_WIDTH = 800;
-  const CELL_SIZE = 56;
+  const CELL_WIDTH = Math.round(56 * 1.44);
+  const CELL_HEIGHT = Math.round(56 * 1.44);
   const GRID_PADDING = 4;
-  const PAD_WIDTH = 176;
-  const PAD_HEIGHT = 244;
+  const PAD_WIDTH = Math.round(176 * 1.2);
+  const PAD_HEIGHT = Math.round(244 * 1.2);
+  const rootRef = useRef<HTMLElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
-  const [viewportWidth, setViewportWidth] = useState(BASE_WIDTH);
   const [scaledHeight, setScaledHeight] = useState(0);
 
   useLayoutEffect(() => {
     const updateScale = () => {
       const targetWidth = viewportRef.current?.clientWidth ?? BASE_WIDTH;
       const nextScale = Math.min(1, Math.max(0, targetWidth / BASE_WIDTH));
-      setViewportWidth(targetWidth);
       setScale(nextScale);
       if (contentRef.current) {
         setScaledHeight(contentRef.current.scrollHeight * nextScale);
@@ -88,19 +88,31 @@ export function SudokuBoard({
 
   const selectionLocked = selectedIndex === null ? true : fixed[selectedIndex];
   const editableSelected = selectedIndex !== null && !selectionLocked;
-  const compactPad = viewportWidth < 760;
+
+  useEffect(() => {
+    if (!editableSelected) return;
+    const handlePointerDown = (event: PointerEvent) => {
+      const target = event.target as Node | null;
+      if (!target) return;
+      if (rootRef.current?.contains(target)) return;
+      onSelect(null);
+    };
+    window.addEventListener('pointerdown', handlePointerDown);
+    return () => window.removeEventListener('pointerdown', handlePointerDown);
+  }, [editableSelected, onSelect]);
+
   const padPosition = (() => {
-    if (!editableSelected || selectedIndex === null || compactPad) return null;
+    if (!editableSelected || selectedIndex === null) return null;
     const row = Math.floor(selectedIndex / 9);
     const col = selectedIndex % 9;
-    const boardWidth = GRID_PADDING * 2 + CELL_SIZE * 9;
-    const boardHeight = GRID_PADDING * 2 + CELL_SIZE * 9;
-    const cellX = GRID_PADDING + col * CELL_SIZE;
-    const cellY = GRID_PADDING + row * CELL_SIZE;
+    const boardWidth = GRID_PADDING * 2 + CELL_WIDTH * 9;
+    const boardHeight = GRID_PADDING * 2 + CELL_HEIGHT * 9;
+    const cellX = GRID_PADDING + col * CELL_WIDTH;
+    const cellY = GRID_PADDING + row * CELL_HEIGHT;
 
-    let left = cellX + CELL_SIZE + 10;
-    if (left + PAD_WIDTH > boardWidth - 2) {
-      left = cellX - PAD_WIDTH - 10;
+    let left = cellX + CELL_WIDTH + 10;
+    if (left + PAD_WIDTH > boardWidth - GRID_PADDING) {
+      left = boardWidth - PAD_WIDTH - GRID_PADDING;
     }
 
     const maxTop = boardHeight - PAD_HEIGHT - GRID_PADDING;
@@ -110,6 +122,7 @@ export function SudokuBoard({
 
   return (
     <section
+      ref={rootRef}
       className="box-border max-w-full overflow-hidden rounded-2xl border border-slate-400/60 bg-[#e7e7e7] p-3 text-slate-900 sm:p-4"
       style={{ width: 'min(96vw, 800px)', marginInline: 'auto' }}
     >
@@ -129,7 +142,7 @@ export function SudokuBoard({
                       disabled={locked}
                       onClick={() => onSelect(index)}
                       key={index}
-                      className={`relative flex h-14 w-14 items-center justify-center rounded-none font-mono text-lg ${cellBorderClass(index)} ${
+                      className={`relative flex items-center justify-center rounded-none font-mono text-lg ${cellBorderClass(index)} ${
                         selectedIndex === index
                           ? 'bg-sky-200 text-sky-900'
                           : selectedValue > 0 && value === selectedValue
@@ -140,6 +153,7 @@ export function SudokuBoard({
                                 ? 'bg-slate-300 text-slate-900'
                                 : 'bg-transparent text-slate-800'
                       }`}
+                      style={{ width: `${CELL_WIDTH}px`, height: `${CELL_HEIGHT}px` }}
                     >
                       {value > 0 ? (
                         value
@@ -158,62 +172,17 @@ export function SudokuBoard({
                   );
                 })}
               </div>
-              {editableSelected && compactPad ? (
-                <div className="mt-3 flex justify-center">
-                  <div className="w-44 rounded-lg border border-slate-500/70 bg-[#f3f4f6]/95 p-2 shadow-[0_8px_28px_rgba(15,23,42,0.3)] backdrop-blur-[1px]">
-                    <div className="mb-1 grid grid-cols-2 gap-1">
-                      <button
-                        type="button"
-                        disabled={locked || selectionLocked}
-                        onClick={onToggleNoteMode}
-                        className={`h-9 rounded-sm border px-1 font-mono text-xs uppercase disabled:opacity-40 ${
-                          noteMode ? 'border-sky-500/60 bg-sky-100 text-sky-900' : 'border-slate-500/60 bg-slate-200 text-slate-900'
-                        }`}
-                      >
-                        메모
-                      </button>
-                      <button
-                        type="button"
-                        disabled={locked || selectionLocked}
-                        onClick={() => {
-                          onClear();
-                          onSelect(null);
-                        }}
-                        className="h-9 rounded-sm border border-slate-600/70 bg-slate-300 px-1 font-mono text-xs uppercase text-slate-900 disabled:opacity-40"
-                      >
-                        지우기
-                      </button>
-                    </div>
-                    <div className="grid grid-cols-3 gap-1">
-                      {Array.from({ length: 9 }, (_, index) => (
-                        <button
-                          type="button"
-                          disabled={locked || selectionLocked}
-                          onClick={() => {
-                            onInput(index + 1);
-                            onSelect(null);
-                          }}
-                          key={`compact-key-${index + 1}`}
-                          className="h-10 w-10 rounded-sm border border-slate-500/60 bg-slate-200 font-mono text-base text-slate-900 disabled:opacity-40"
-                        >
-                          {index + 1}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              ) : null}
               {padPosition ? (
                 <div
-                  className="absolute z-20 w-44 rounded-lg border border-slate-500/70 bg-[#f3f4f6]/95 p-2 shadow-[0_8px_28px_rgba(15,23,42,0.3)] backdrop-blur-[1px]"
-                  style={{ left: `${padPosition.left}px`, top: `${padPosition.top}px` }}
+                  className="absolute z-20 rounded-lg border border-slate-500/70 bg-[#f3f4f6]/95 p-2 shadow-[0_8px_28px_rgba(15,23,42,0.3)] backdrop-blur-[1px]"
+                  style={{ width: `${PAD_WIDTH}px`, left: `${padPosition.left}px`, top: `${padPosition.top}px` }}
                 >
                   <div className="mb-1 grid grid-cols-2 gap-1">
                     <button
                       type="button"
                       disabled={locked || selectionLocked}
                       onClick={onToggleNoteMode}
-                      className={`h-9 rounded-sm border px-1 font-mono text-xs uppercase disabled:opacity-40 ${
+                      className={`h-11 rounded-sm border px-1 font-mono text-sm uppercase disabled:opacity-40 ${
                         noteMode ? 'border-sky-500/60 bg-sky-100 text-sky-900' : 'border-slate-500/60 bg-slate-200 text-slate-900'
                       }`}
                     >
@@ -226,7 +195,7 @@ export function SudokuBoard({
                         onClear();
                         onSelect(null);
                       }}
-                      className="h-9 rounded-sm border border-slate-600/70 bg-slate-300 px-1 font-mono text-xs uppercase text-slate-900 disabled:opacity-40"
+                      className="h-11 rounded-sm border border-slate-600/70 bg-slate-300 px-1 font-mono text-sm uppercase text-slate-900 disabled:opacity-40"
                     >
                       지우기
                     </button>
@@ -241,7 +210,7 @@ export function SudokuBoard({
                           onSelect(null);
                         }}
                         key={`key-${index + 1}`}
-                        className="h-10 w-10 rounded-sm border border-slate-500/60 bg-slate-200 font-mono text-base text-slate-900 disabled:opacity-40"
+                        className="h-[58px] w-[58px] rounded-sm border border-slate-500/60 bg-slate-200 font-mono text-lg text-slate-900 disabled:opacity-40"
                       >
                         {index + 1}
                       </button>
