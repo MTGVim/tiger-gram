@@ -8,6 +8,7 @@ import { generateSudokuByDifficulty, parseSudokuTier, type SudokuTier } from '..
 import { solveSudoku } from '../features/sudoku/solver';
 import { clearPuzzleLeaderboard, loadPuzzleLeaderboard, recordPuzzleClear, savePuzzleLeaderboard, type PuzzleLeaderboardEntry } from '../lib/leaderboard';
 import { loadLocal, saveLocal } from '../lib/persistence';
+import { randomSeed } from '../lib/seed';
 import type { SudokuGrid } from '../features/sudoku/types';
 
 type GameState = 'playing' | 'won' | 'lost';
@@ -37,7 +38,7 @@ function emptyNotes(): number[][] {
 export function SudokuPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const tier = parseSudokuTier(searchParams.get('difficulty'));
-  const [seed, setSeed] = useState(4);
+  const [seed, setSeed] = useState(() => randomSeed());
 
   const model = useMemo(() => {
     const generated = generateSudokuByDifficulty(seed, tier);

@@ -6,6 +6,7 @@ import { NonogramBoard } from '../features/nonogram/NonogramBoard';
 import { parseNonogramSizeTier, type NonogramSizeTier } from '../features/nonogram/generator';
 import { clearPuzzleLeaderboard, loadPuzzleLeaderboard, recordPuzzleClear, savePuzzleLeaderboard, type PuzzleLeaderboardEntry } from '../lib/leaderboard';
 import { loadLocal, saveLocal } from '../lib/persistence';
+import { randomSeed } from '../lib/seed';
 import type { NonogramDifficulty, NonogramPuzzle, Cell } from '../features/nonogram/types';
 
 type GameState = 'playing' | 'won' | 'lost';
@@ -78,7 +79,7 @@ function colMatchesClue(board: Cell[][], colIndex: number, clue: number[]): bool
 export function NonogramPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const sizeTier = parseNonogramSizeTier(searchParams.get('difficulty'));
-  const [seed, setSeed] = useState(42);
+  const [seed, setSeed] = useState(() => randomSeed());
   const [model, setModel] = useState<{ puzzle: NonogramPuzzle; logicDifficulty: NonogramDifficulty; logicDepth: number } | null>(null);
   const [isGenerating, setIsGenerating] = useState(true);
   const [generationProgress, setGenerationProgress] = useState(0);
