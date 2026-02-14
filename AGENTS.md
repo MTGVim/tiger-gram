@@ -52,6 +52,7 @@ PRs should include:
 
 ## Nonogram Difficulty Size Policy
 When implementing or updating nonogram generation, use this board-size mapping:
+- `veryeasy`: `5x5`
 - `easy`: `10x10`
 - `medium`: `15x15`
 - `hard`: `20x20`

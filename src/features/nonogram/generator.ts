@@ -1,14 +1,22 @@
 import type { Cell, Grid, NonogramPuzzle } from './types';
 
-export type NonogramSizeTier = 'easy' | 'medium' | 'hard';
+export type NonogramSizeTier = 'veryeasy' | 'easy' | 'medium' | 'hard';
 
 const SIZE_OPTIONS: Record<NonogramSizeTier, number[]> = {
+  veryeasy: [5],
   easy: [10],
   medium: [15],
   hard: [20]
 };
 
-const MAX_UNIQUE_ATTEMPTS = 64;
+export const MAX_UNIQUE_ATTEMPTS = 128;
+
+const FILL_PROFILES: Record<NonogramSizeTier, number[]> = {
+  veryeasy: [0.35, 0.45, 0.55],
+  easy: [0.4, 0.5, 0.6],
+  medium: [0.35, 0.45, 0.55, 0.65],
+  hard: [0.3, 0.38, 0.46, 0.54, 0.62, 0.7]
+};
 
 type ColState = {
   clueIndex: number;
@@ -187,15 +195,20 @@ function countSolutions(
 }
 
 function nodeLimitForSize(size: number): number {
-  if (size <= 10) return 400000;
-  if (size <= 15) return 300000;
-  if (size <= 20) return 180000;
-  return 120000;
+  if (size <= 10) return 450000;
+  if (size <= 15) return 380000;
+  if (size <= 20) return 320000;
+  return 220000;
 }
 
 function hasUniqueSolution(rowClues: number[][], colClues: number[][]): boolean {
-  const { count, exhausted } = countSolutions(rowClues, colClues, 2, nodeLimitForSize(rowClues.length));
-  return !exhausted && count === 1;
+  const baseLimit = nodeLimitForSize(rowClues.length);
+  const first = countSolutions(rowClues, colClues, 2, baseLimit);
+  if (!first.exhausted) return first.count === 1;
+
+  // Retry with a higher node cap before rejecting a candidate as generation failure.
+  const second = countSolutions(rowClues, colClues, 2, baseLimit * 4);
+  return !second.exhausted && second.count === 1;
 }
 
 export function candidateSizesForDifficulty(tier: NonogramSizeTier, seed: number): number[] {
@@ -205,6 +218,7 @@ export function candidateSizesForDifficulty(tier: NonogramSizeTier, seed: number
 }
 
 export function parseNonogramSizeTier(value: string | null | undefined): NonogramSizeTier {
+  if (value === 'veryeasy' || value === 'very-easy') return 'veryeasy';
   if (value === 'easy') return 'easy';
   if (value === 'hard') return 'hard';
   if (value === 'expert') return 'hard';
@@ -217,10 +231,10 @@ export function sizeForDifficulty(tier: NonogramSizeTier, seed: number): number 
   return options[index];
 }
 
-export function generateNonogram(seed: number, size = 10): NonogramPuzzle {
+export function generateNonogram(seed: number, size = 10, fillRate = 0.45): NonogramPuzzle {
   const rand = mulberry32(seed);
   const solution: Grid = Array.from({ length: size }, () =>
-    Array.from({ length: size }, () => (rand() > 0.55 ? 1 : 0) as Cell)
+    Array.from({ length: size }, () => (rand() < fillRate ? 1 : 0) as Cell)
   );
 
   const rowClues = solution.map((line) => cluesForLine(line));
@@ -232,11 +246,14 @@ export function generateNonogram(seed: number, size = 10): NonogramPuzzle {
 export function tryGenerateUniqueForSize(
   seed: number,
   size: number,
+  tier: NonogramSizeTier,
   onAttempt?: (attempt: number, maxAttempts: number) => void
 ): NonogramPuzzle | null {
+  const profiles = FILL_PROFILES[tier];
   for (let attempt = 0; attempt < MAX_UNIQUE_ATTEMPTS; attempt += 1) {
     onAttempt?.(attempt + 1, MAX_UNIQUE_ATTEMPTS);
-    const candidate = generateNonogram(seed + attempt * 977, size);
+    const profile = profiles[(attempt + Math.abs(seed)) % profiles.length];
+    const candidate = generateNonogram(seed + attempt * 977, size, profile);
     if (hasUniqueSolution(candidate.rowClues, candidate.colClues)) {
       return candidate;
     }
@@ -247,7 +264,7 @@ export function tryGenerateUniqueForSize(
 export function generateNonogramByDifficulty(seed: number, tier: NonogramSizeTier): NonogramPuzzle {
   const sizes = candidateSizesForDifficulty(tier, seed);
   for (const size of sizes) {
-    const puzzle = tryGenerateUniqueForSize(seed, size);
+    const puzzle = tryGenerateUniqueForSize(seed, size, tier);
     if (puzzle) return puzzle;
   }
 

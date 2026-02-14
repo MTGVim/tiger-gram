@@ -31,6 +31,7 @@ yarn dev
 
 ## 난이도 정책
 ### 노노그램 크기 티어
+- `veryeasy`: `5x5`
 - `easy`: `10x10`
 - `medium`: `15x15`
 - `hard`: `20x20`

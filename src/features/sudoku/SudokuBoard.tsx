@@ -57,6 +57,20 @@ export function SudokuBoard({
     return `${top} ${left} ${right} ${bottom}`;
   };
 
+  const selectedValue = selectedIndex !== null ? grid[selectedIndex] : 0;
+  const highlightRows = new Set<number>();
+  const highlightCols = new Set<number>();
+
+  if (selectedValue > 0) {
+    grid.forEach((value, index) => {
+      if (value !== selectedValue) return;
+      highlightRows.add(Math.floor(index / 9));
+      highlightCols.add(index % 9);
+    });
+  }
+
+  const selectionLocked = selectedIndex === null ? true : fixed[selectedIndex];
+
   return (
     <section
       className="box-border max-w-full overflow-hidden rounded-2xl border border-slate-400/60 bg-[#e7e7e7] p-3 text-slate-900 sm:p-4"
@@ -70,15 +84,19 @@ export function SudokuBoard({
                 {grid.map((value, index) => (
                   <button
                     type="button"
-                    disabled={locked || fixed[index]}
+                    disabled={locked}
                     onClick={() => onSelect(index)}
                     key={index}
                     className={`flex h-12 w-12 items-center justify-center rounded-none font-mono text-base ${cellBorderClass(index)} ${
-                      fixed[index]
-                        ? 'bg-slate-300 text-slate-900'
-                        : selectedIndex === index
-                          ? 'bg-sky-200 text-sky-900'
-                          : 'bg-transparent text-slate-800'
+                      selectedIndex === index
+                        ? 'bg-sky-200 text-sky-900'
+                        : selectedValue > 0 && value === selectedValue
+                          ? 'bg-amber-100 text-amber-900'
+                          : selectedValue > 0 && (highlightRows.has(Math.floor(index / 9)) || highlightCols.has(index % 9))
+                            ? 'bg-sky-100/60 text-slate-900'
+                            : fixed[index]
+                              ? 'bg-slate-300 text-slate-900'
+                              : 'bg-transparent text-slate-800'
                     }`}
                   >
                     {value || '·'}
@@ -89,7 +107,7 @@ export function SudokuBoard({
                 {Array.from({ length: 9 }, (_, index) => (
                   <button
                     type="button"
-                    disabled={locked || selectedIndex === null}
+                    disabled={locked || selectedIndex === null || selectionLocked}
                     onClick={() => onInput(index + 1)}
                     key={`key-${index + 1}`}
                     className="h-11 w-11 rounded-sm border border-slate-500/60 bg-slate-200 font-mono text-base text-slate-900 disabled:opacity-40"
@@ -99,7 +117,7 @@ export function SudokuBoard({
                 ))}
                 <button
                   type="button"
-                  disabled={locked || selectedIndex === null}
+                  disabled={locked || selectedIndex === null || selectionLocked}
                   onClick={onClear}
                   className="col-span-2 h-11 rounded-sm border border-slate-600/70 bg-slate-300 px-2 font-mono text-base uppercase text-slate-900 disabled:opacity-40"
                 >

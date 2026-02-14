@@ -61,8 +61,13 @@ export function NonogramBoard({
 
   const maxRowClues = Math.max(...rowClues.map((clue) => clue.length));
   const maxColClues = Math.max(...colClues.map((clue) => clue.length));
-  const rowClueWidth = Math.min(maxRowClues * 16 + 10, 200);
-  const colClueHeight = maxColClues * 18 + 10;
+  const size = board.length;
+  const cellSize = size <= 5 ? 12 : size <= 10 ? 10 : size <= 15 ? 8 : 7;
+  const clueCell = Math.max(7, cellSize - 1);
+  const hintFontSize = size <= 10 ? 14 : 13;
+  const cellFontSize = size <= 10 ? 13 : 12;
+  const rowClueWidth = Math.min(maxRowClues * (clueCell + 4) + 8, 160);
+  const colClueHeight = maxColClues * (clueCell + 2) + 4;
 
   const isRowSatisfied = (rowIndex: number): boolean => {
     const row = board[rowIndex];
@@ -100,8 +105,8 @@ export function NonogramBoard({
                   {colClues.map((clue, index) => (
                     <div
                       key={`cc-${index}`}
-                      className="flex w-10 flex-col items-center justify-end gap-0.5 pb-1 font-mono text-[13px] text-slate-800"
-                      style={{ height: colClueHeight }}
+                      className="flex flex-col items-center justify-end gap-0.5 pb-0.5 font-mono text-slate-800"
+                      style={{ width: clueCell, height: colClueHeight, fontSize: hintFontSize }}
                     >
                       {clue.map((value, i) => (
                         <span key={`cc-${index}-${i}`} className="leading-none">
@@ -117,8 +122,8 @@ export function NonogramBoard({
                 {board.map((row, r) => (
                   <div key={`row-${r}`} className="flex gap-1">
                     <div
-                      className={`flex h-10 items-center justify-end gap-1 pr-1 font-mono text-[13px] ${isRowSatisfied(r) ? 'text-emerald-600' : 'text-slate-800'}`}
-                      style={{ width: rowClueWidth }}
+                      className={`flex items-center justify-end gap-1 pr-1 font-mono ${isRowSatisfied(r) ? 'text-emerald-600' : 'text-slate-800'}`}
+                      style={{ width: rowClueWidth, height: cellSize, fontSize: hintFontSize }}
                     >
                       {rowClues[r].map((value, i) => (
                         <span key={`rc-${r}-${i}`} className="leading-none">
@@ -149,7 +154,8 @@ export function NonogramBoard({
                           onCycleCell(r, c);
                         }}
                         key={`${r}-${c}`}
-                        className={`flex h-10 w-10 items-center justify-center rounded-sm border border-slate-500/70 font-mono text-sm transition-transform active:scale-95 ${
+                        style={{ width: cellSize, height: cellSize, fontSize: cellFontSize }}
+                        className={`flex items-center justify-center rounded-sm border border-slate-500/70 font-mono transition-transform active:scale-95 ${
                           cell === 1
                             ? 'bg-slate-600 text-slate-100'
                             : 'bg-[#efefef] text-slate-500'

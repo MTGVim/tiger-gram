@@ -462,6 +462,7 @@ END BRAND SPEC
 
 Based on gameplay onboarding guidance:
 
+- Very Easy: around 5x5 (current implementation default: 5x5)
 - Easy: around 10x10 (current implementation default: 10x10)
 - Medium: around 15x15 (current implementation default: 15x15)
 - Hard: around 20x20 (current implementation default: 20x20)

@@ -4,6 +4,7 @@ import { classifyNonogramDifficulty } from './difficulty';
 import type { NonogramPuzzle } from './types';
 import {
   candidateSizesForDifficulty,
+  MAX_UNIQUE_ATTEMPTS,
   tryGenerateUniqueForSize,
   type NonogramSizeTier
 } from './generator';
@@ -45,13 +46,13 @@ self.onmessage = (event: MessageEvent<GenerateRequest>) => {
   const { id, seed, tier } = event.data;
   try {
     const sizes = candidateSizesForDifficulty(tier, seed);
-    const perSize = 64;
+    const perSize = MAX_UNIQUE_ATTEMPTS;
     const total = sizes.length * perSize;
     let completed = 0;
     let puzzle = null;
 
     for (const size of sizes) {
-      puzzle = tryGenerateUniqueForSize(seed, size, (attempt, maxAttempts) => {
+      puzzle = tryGenerateUniqueForSize(seed, size, tier, (attempt, maxAttempts) => {
         const absolute = completed + attempt;
         const progress = Math.min(99, Math.max(1, Math.floor((absolute / total) * 100)));
         const payload: GenerateProgress = { id, type: 'progress', progress, size, attempt, maxAttempts };

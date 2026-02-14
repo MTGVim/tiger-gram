@@ -20,6 +20,7 @@ type WorkerResponse = {
 };
 
 const DIFFICULTY_LABELS: Record<NonogramSizeTier, string> = {
+  veryeasy: '아주쉬움',
   easy: '쉬움',
   medium: '보통',
   hard: '어려움'
