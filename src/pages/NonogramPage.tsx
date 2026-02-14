@@ -96,11 +96,12 @@ export function NonogramPage() {
   const requestIdRef = useRef(0);
   const winRecordedRef = useRef(false);
   const winAudioRef = useRef<HTMLAudioElement | null>(null);
+  const victoryAudioSrc = `${import.meta.env.BASE_URL}sounds/victory-fanfare.mp3`;
 
   useEffect(() => {
-    winAudioRef.current = new Audio('/sounds/victory-fanfare.mp3');
+    winAudioRef.current = new Audio(victoryAudioSrc);
     winAudioRef.current.preload = 'auto';
-  }, []);
+  }, [victoryAudioSrc]);
 
   useEffect(() => {
     saveLocal('muted', muted);

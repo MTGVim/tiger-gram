@@ -57,6 +57,8 @@ yarn dev
 - GitHub Pages 워크플로우: `.github/workflows/deploy-pages.yml`
 - `main` push 또는 수동 실행 시 `dist/` 배포
 - SPA 라우팅 fallback을 위해 `dist/index.html`을 `dist/404.html`로 복사
+- GitHub Pages 경로: `https://mtgvim.github.io/tiger-gram/`
+- 정적 에셋은 `import.meta.env.BASE_URL` 기준 경로를 사용해 하위 경로 배포를 지원
 
 ## 에셋
 - 랜딩 이미지: `public/concept.png` (`src/pages/LandingPage.tsx`에서 사용)

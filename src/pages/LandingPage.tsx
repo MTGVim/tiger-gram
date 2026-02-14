@@ -1,4 +1,6 @@
 export function LandingPage() {
+  const conceptImageSrc = `${import.meta.env.BASE_URL}concept.png`;
+
   return (
     <section className="grid gap-4">
       <article className="rounded-2xl border border-white/10 bg-white/5 p-6">
@@ -9,7 +11,7 @@ export function LandingPage() {
           상단 탭에서 게임을 선택해 바로 플레이할 수 있습니다.
         </p>
         <img
-          src="/concept.png"
+          src={conceptImageSrc}
           alt="서비스 콘셉트"
           className="mt-4 w-full rounded-xl border border-white/10 object-cover"
         />
