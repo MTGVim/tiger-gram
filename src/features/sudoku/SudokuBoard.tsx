@@ -26,12 +26,12 @@ export function SudokuBoard({
   onClear,
   locked = false
 }: SudokuBoardProps) {
-  const BASE_WIDTH = 800;
-  const CELL_WIDTH = Math.round(56 * 1.44);
-  const CELL_HEIGHT = Math.round(56 * 1.44);
-  const GRID_PADDING = 4;
+  const CELL_WIDTH = Math.round(56 * 1.1);
+  const CELL_HEIGHT = Math.round(56 * 1.1);
   const PAD_WIDTH = Math.round(176 * 1.2);
-  const PAD_HEIGHT = Math.round(244 * 1.2);
+  const GRID_WIDTH = CELL_WIDTH * 9 + 8;
+  const LAYOUT_GAP = 12;
+  const BASE_WIDTH = GRID_WIDTH + PAD_WIDTH + LAYOUT_GAP;
   const rootRef = useRef<HTMLElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -101,35 +101,16 @@ export function SudokuBoard({
     return () => window.removeEventListener('pointerdown', handlePointerDown);
   }, [editableSelected, onSelect]);
 
-  const padPosition = (() => {
-    if (!editableSelected || selectedIndex === null) return null;
-    const row = Math.floor(selectedIndex / 9);
-    const col = selectedIndex % 9;
-    const boardWidth = GRID_PADDING * 2 + CELL_WIDTH * 9;
-    const boardHeight = GRID_PADDING * 2 + CELL_HEIGHT * 9;
-    const cellX = GRID_PADDING + col * CELL_WIDTH;
-    const cellY = GRID_PADDING + row * CELL_HEIGHT;
-
-    let left = cellX + CELL_WIDTH + 10;
-    if (left + PAD_WIDTH > boardWidth - GRID_PADDING) {
-      left = boardWidth - PAD_WIDTH - GRID_PADDING;
-    }
-
-    const maxTop = boardHeight - PAD_HEIGHT - GRID_PADDING;
-    const top = Math.max(GRID_PADDING, Math.min(cellY - 6, maxTop));
-    return { left, top };
-  })();
-
   return (
     <section
       ref={rootRef}
       className="box-border max-w-full overflow-hidden rounded-2xl border border-slate-400/60 bg-[#e7e7e7] p-3 text-slate-900 sm:p-4"
-      style={{ width: 'min(96vw, 800px)', marginInline: 'auto' }}
+      style={{ width: `min(96vw, ${BASE_WIDTH}px)`, marginInline: 'auto' }}
     >
       <div ref={viewportRef} className="flex w-full justify-center overflow-hidden">
         <div className="overflow-hidden" style={{ width: BASE_WIDTH * scale, height: scaledHeight || 'auto' }}>
-          <div ref={contentRef} className="w-[800px]" style={{ transform: `scale(${scale})`, transformOrigin: 'top left' }}>
-            <div className="relative mx-auto w-fit">
+          <div ref={contentRef} style={{ width: `${BASE_WIDTH}px`, transform: `scale(${scale})`, transformOrigin: 'top left' }}>
+            <div className="flex items-start gap-3">
               <div className="grid w-fit grid-cols-9 gap-0 rounded-md bg-[#efefef] p-1">
                 {grid.map((value, index) => {
                   const row = Math.floor(index / 9);
@@ -172,52 +153,50 @@ export function SudokuBoard({
                   );
                 })}
               </div>
-              {padPosition ? (
-                <div
-                  className="absolute z-20 rounded-lg border border-slate-500/65 bg-slate-100/78 p-2 shadow-[0_8px_28px_rgba(15,23,42,0.28)] backdrop-blur-[2px]"
-                  style={{ width: `${PAD_WIDTH}px`, left: `${padPosition.left}px`, top: `${padPosition.top}px` }}
-                >
-                  <div className="mb-1 grid grid-cols-2 gap-1">
-                    <button
-                      type="button"
-                      disabled={locked || selectionLocked}
-                      onClick={onToggleNoteMode}
-                      className={`h-11 rounded-sm border px-1 font-mono text-sm uppercase disabled:opacity-40 ${
-                        noteMode ? 'border-sky-500/60 bg-sky-100/75 text-sky-900' : 'border-slate-500/60 bg-slate-200/75 text-slate-900'
-                      }`}
-                    >
-                      메모
-                    </button>
+              <div
+                className="rounded-lg border border-slate-500/65 bg-slate-100/78 p-2 shadow-[0_8px_28px_rgba(15,23,42,0.28)] backdrop-blur-[2px]"
+                style={{ width: `${PAD_WIDTH}px` }}
+              >
+                <div className="mb-1 grid grid-cols-2 gap-1">
+                  <button
+                    type="button"
+                    disabled={locked || selectionLocked}
+                    onClick={onToggleNoteMode}
+                    className={`h-11 rounded-sm border px-1 font-mono text-sm uppercase disabled:opacity-40 ${
+                      noteMode ? 'border-sky-500/60 bg-sky-100/75 text-sky-900' : 'border-slate-500/60 bg-slate-200/75 text-slate-900'
+                    }`}
+                  >
+                    메모
+                  </button>
+                  <button
+                    type="button"
+                    disabled={locked || selectionLocked}
+                    onClick={() => {
+                      onClear();
+                      onSelect(null);
+                    }}
+                    className="h-11 rounded-sm border border-slate-600/70 bg-slate-300/75 px-1 font-mono text-sm uppercase text-slate-900 disabled:opacity-40"
+                  >
+                    지우기
+                  </button>
+                </div>
+                <div className="grid grid-cols-3 gap-1">
+                  {Array.from({ length: 9 }, (_, index) => (
                     <button
                       type="button"
                       disabled={locked || selectionLocked}
                       onClick={() => {
-                        onClear();
+                        onInput(index + 1);
                         onSelect(null);
                       }}
-                      className="h-11 rounded-sm border border-slate-600/70 bg-slate-300/75 px-1 font-mono text-sm uppercase text-slate-900 disabled:opacity-40"
+                      key={`key-${index + 1}`}
+                      className="h-[58px] w-[58px] rounded-sm border border-slate-500/60 bg-slate-200/75 font-mono text-lg text-slate-900 disabled:opacity-40"
                     >
-                      지우기
+                      {index + 1}
                     </button>
-                  </div>
-                  <div className="grid grid-cols-3 gap-1">
-                    {Array.from({ length: 9 }, (_, index) => (
-                      <button
-                        type="button"
-                        disabled={locked || selectionLocked}
-                        onClick={() => {
-                          onInput(index + 1);
-                          onSelect(null);
-                        }}
-                        key={`key-${index + 1}`}
-                        className="h-[58px] w-[58px] rounded-sm border border-slate-500/60 bg-slate-200/75 font-mono text-lg text-slate-900 disabled:opacity-40"
-                      >
-                        {index + 1}
-                      </button>
-                    ))}
-                  </div>
+                  ))}
                 </div>
-              ) : null}
+              </div>
             </div>
           </div>
         </div>
