@@ -1,12 +1,11 @@
 import type { Cell, Grid, NonogramPuzzle } from './types';
 
-export type NonogramSizeTier = 'easy' | 'medium' | 'hard' | 'expert';
+export type NonogramSizeTier = 'easy' | 'medium' | 'hard';
 
 const SIZE_OPTIONS: Record<NonogramSizeTier, number[]> = {
   easy: [10],
   medium: [15],
-  hard: [20],
-  expert: [25]
+  hard: [20]
 };
 
 const MAX_UNIQUE_ATTEMPTS = 64;
@@ -208,7 +207,7 @@ export function candidateSizesForDifficulty(tier: NonogramSizeTier, seed: number
 export function parseNonogramSizeTier(value: string | null | undefined): NonogramSizeTier {
   if (value === 'easy') return 'easy';
   if (value === 'hard') return 'hard';
-  if (value === 'expert') return 'expert';
+  if (value === 'expert') return 'hard';
   return 'medium';
 }
 

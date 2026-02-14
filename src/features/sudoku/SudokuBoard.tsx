@@ -20,34 +20,32 @@ export function SudokuBoard({
   onClear,
   locked = false
 }: SudokuBoardProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
+  const BASE_WIDTH = 800;
+  const viewportRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
-  const [scaledWidth, setScaledWidth] = useState<number>(0);
-  const [scaledHeight, setScaledHeight] = useState<number>(0);
+  const [scaledHeight, setScaledHeight] = useState(0);
 
   useLayoutEffect(() => {
     const updateScale = () => {
-      if (!containerRef.current || !contentRef.current) return;
-      const containerWidth = containerRef.current.clientWidth;
-      const contentWidth = contentRef.current.scrollWidth;
-      const contentHeight = contentRef.current.scrollHeight;
-      const nextScale = contentWidth > 0 ? Math.min(1, containerWidth / contentWidth) : 1;
+      const targetWidth = viewportRef.current?.clientWidth ?? BASE_WIDTH;
+      const nextScale = Math.min(1, Math.max(0, targetWidth / BASE_WIDTH));
       setScale(nextScale);
-      setScaledWidth(contentWidth * nextScale);
-      setScaledHeight(contentHeight * nextScale);
+      if (contentRef.current) {
+        setScaledHeight(contentRef.current.scrollHeight * nextScale);
+      }
     };
 
     updateScale();
     const observer = new ResizeObserver(updateScale);
-    if (containerRef.current) observer.observe(containerRef.current);
+    if (viewportRef.current) observer.observe(viewportRef.current);
     if (contentRef.current) observer.observe(contentRef.current);
     window.addEventListener('resize', updateScale);
     return () => {
       observer.disconnect();
       window.removeEventListener('resize', updateScale);
     };
-  }, [grid.length]);
+  }, []);
 
   const cellBorderClass = (index: number): string => {
     const row = Math.floor(index / 9);
@@ -60,50 +58,54 @@ export function SudokuBoard({
   };
 
   return (
-    <section className="rounded-2xl border border-slate-400/60 bg-[#e7e7e7] p-4 text-slate-900">
-      <h2 className="mb-3 text-sm font-semibold uppercase tracking-[0.12em] text-slate-700">스도쿠</h2>
-      <div ref={containerRef} className="w-full overflow-hidden">
-        <div className="mx-auto" style={{ width: scaledWidth || '100%', height: scaledHeight || 'auto' }}>
-          <div ref={contentRef} className="w-fit" style={{ transform: `scale(${scale})`, transformOrigin: 'top left' }}>
-            <div className="grid w-fit grid-cols-9 gap-0 rounded-md bg-[#efefef] p-1">
-              {grid.map((value, index) => (
-                <button
-                  type="button"
-                  disabled={locked || fixed[index]}
-                  onClick={() => onSelect(index)}
-                  key={index}
-                  className={`flex h-8 w-8 items-center justify-center rounded-none font-mono text-xs ${cellBorderClass(index)} ${
-                    fixed[index]
-                      ? 'bg-slate-300 text-slate-900'
-                      : selectedIndex === index
-                        ? 'bg-sky-200 text-sky-900'
-                        : 'bg-transparent text-slate-800'
-                  }`}
-                >
-                  {value || '·'}
-                </button>
-              ))}
-            </div>
-            <div className="mt-4 grid w-fit grid-cols-5 gap-1">
-              {Array.from({ length: 9 }, (_, index) => (
+    <section
+      className="box-border max-w-full overflow-hidden rounded-2xl border border-slate-400/60 bg-[#e7e7e7] p-3 text-slate-900 sm:p-4"
+      style={{ width: 'min(98vw, 800px)', marginInline: 'auto' }}
+    >
+      <div ref={viewportRef} className="flex w-full justify-center overflow-hidden">
+        <div className="overflow-hidden" style={{ width: BASE_WIDTH * scale, height: scaledHeight || 'auto' }}>
+          <div ref={contentRef} className="w-[800px]" style={{ transform: `scale(${scale})`, transformOrigin: 'top left' }}>
+            <div className="mx-auto w-fit">
+              <div className="grid w-fit grid-cols-9 gap-0 rounded-md bg-[#efefef] p-1">
+                {grid.map((value, index) => (
+                  <button
+                    type="button"
+                    disabled={locked || fixed[index]}
+                    onClick={() => onSelect(index)}
+                    key={index}
+                    className={`flex h-12 w-12 items-center justify-center rounded-none font-mono text-base ${cellBorderClass(index)} ${
+                      fixed[index]
+                        ? 'bg-slate-300 text-slate-900'
+                        : selectedIndex === index
+                          ? 'bg-sky-200 text-sky-900'
+                          : 'bg-transparent text-slate-800'
+                    }`}
+                  >
+                    {value || '·'}
+                  </button>
+                ))}
+              </div>
+              <div className="mt-4 grid w-fit grid-cols-5 gap-1">
+                {Array.from({ length: 9 }, (_, index) => (
+                  <button
+                    type="button"
+                    disabled={locked || selectedIndex === null}
+                    onClick={() => onInput(index + 1)}
+                    key={`key-${index + 1}`}
+                    className="h-11 w-11 rounded-sm border border-slate-500/60 bg-slate-200 font-mono text-base text-slate-900 disabled:opacity-40"
+                  >
+                    {index + 1}
+                  </button>
+                ))}
                 <button
                   type="button"
                   disabled={locked || selectedIndex === null}
-                  onClick={() => onInput(index + 1)}
-                  key={`key-${index + 1}`}
-                  className="h-7 w-7 rounded-sm border border-slate-500/60 bg-slate-200 font-mono text-xs text-slate-900 disabled:opacity-40"
+                  onClick={onClear}
+                  className="col-span-2 h-11 rounded-sm border border-slate-600/70 bg-slate-300 px-2 font-mono text-base uppercase text-slate-900 disabled:opacity-40"
                 >
-                  {index + 1}
+                  지우기
                 </button>
-              ))}
-              <button
-                type="button"
-                disabled={locked || selectedIndex === null}
-                onClick={onClear}
-                className="col-span-2 h-7 rounded-sm border border-slate-600/70 bg-slate-300 px-2 font-mono text-xs uppercase text-slate-900 disabled:opacity-40"
-              >
-                지우기
-              </button>
+              </div>
             </div>
           </div>
         </div>

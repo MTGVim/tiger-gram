@@ -6,13 +6,13 @@ import {
   type SudokuTier
 } from '../../../src/features/sudoku/generator';
 
-const TIERS: SudokuTier[] = ['easy', 'medium', 'hard', 'expert'];
+const TIERS: SudokuTier[] = ['easy', 'medium', 'hard'];
 
 describe('sudoku generator by difficulty', () => {
   it('parses query tier safely', () => {
     expect(parseSudokuTier('easy')).toBe('easy');
     expect(parseSudokuTier('hard')).toBe('hard');
-    expect(parseSudokuTier('expert')).toBe('expert');
+    expect(parseSudokuTier('expert')).toBe('hard');
     expect(parseSudokuTier('unknown')).toBe('medium');
     expect(parseSudokuTier(null)).toBe('medium');
   });
@@ -31,10 +31,8 @@ describe('sudoku generator by difficulty', () => {
     const easy = generateSudokuByDifficulty(20, 'easy').puzzle.filter((v) => v !== 0).length;
     const medium = generateSudokuByDifficulty(20, 'medium').puzzle.filter((v) => v !== 0).length;
     const hard = generateSudokuByDifficulty(20, 'hard').puzzle.filter((v) => v !== 0).length;
-    const expert = generateSudokuByDifficulty(20, 'expert').puzzle.filter((v) => v !== 0).length;
 
     expect(easy).toBeGreaterThanOrEqual(medium);
     expect(medium).toBeGreaterThanOrEqual(hard);
-    expect(hard).toBeGreaterThanOrEqual(expert);
   });
 });

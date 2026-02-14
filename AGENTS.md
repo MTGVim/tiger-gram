@@ -55,6 +55,5 @@ When implementing or updating nonogram generation, use this board-size mapping:
 - `easy`: `10x10`
 - `medium`: `15x15`
 - `hard`: `20x20`
-- `expert`: `25x25+` (current default set includes `25x25`)
 
 Keep size-tier selection separate from solver-based logic difficulty classification.

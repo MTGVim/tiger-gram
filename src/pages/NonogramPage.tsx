@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { NonogramBoard } from '../features/nonogram/NonogramBoard';
 import { parseNonogramSizeTier, type NonogramSizeTier } from '../features/nonogram/generator';
@@ -22,8 +22,7 @@ type WorkerResponse = {
 const DIFFICULTY_LABELS: Record<NonogramSizeTier, string> = {
   easy: '쉬움',
   medium: '보통',
-  hard: '어려움',
-  expert: '전문가'
+  hard: '어려움'
 };
 
 const STATE_LABELS: Record<GameState, string> = {
@@ -69,10 +68,6 @@ export function NonogramPage() {
   const [board, setBoard] = useState<Cell[][]>([]);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [state, setState] = useState<GameState>('playing');
-  const viewportRef = useRef<HTMLDivElement>(null);
-  const contentRef = useRef<HTMLDivElement>(null);
-  const [pageScale, setPageScale] = useState(1);
-  const [scaledPageHeight, setScaledPageHeight] = useState<number>(0);
 
   const workerRef = useRef<Worker | null>(null);
   const requestIdRef = useRef(0);
@@ -134,28 +129,6 @@ export function NonogramPage() {
       tier: sizeTier
     });
   }, [seed, sizeTier]);
-
-  useLayoutEffect(() => {
-    const updateScale = () => {
-      if (!viewportRef.current || !contentRef.current) return;
-      const outerWidth = viewportRef.current.clientWidth;
-      const contentWidth = contentRef.current.scrollWidth;
-      const contentHeight = contentRef.current.scrollHeight;
-      const nextScale = contentWidth > 0 ? Math.min(1, outerWidth / contentWidth) : 1;
-      setPageScale(nextScale);
-      setScaledPageHeight(contentHeight * nextScale);
-    };
-
-    updateScale();
-    const observer = new ResizeObserver(updateScale);
-    if (viewportRef.current) observer.observe(viewportRef.current);
-    if (contentRef.current) observer.observe(contentRef.current);
-    window.addEventListener('resize', updateScale);
-    return () => {
-      observer.disconnect();
-      window.removeEventListener('resize', updateScale);
-    };
-  }, [board.length, isGenerating, model, sizeTier]);
 
   useEffect(() => {
     if (state !== 'playing' || isGenerating) return;
@@ -229,106 +202,98 @@ export function NonogramPage() {
   const statusLabel = useMemo(() => (isGenerating ? '생성중' : STATE_LABELS[state]), [isGenerating, state]);
 
   return (
-    <div ref={viewportRef} className="w-full overflow-hidden">
-      <div className="mx-auto" style={{ width: pageScale < 1 ? undefined : '100%', height: scaledPageHeight || 'auto' }}>
-        <div ref={contentRef} style={{ transform: `scale(${pageScale})`, transformOrigin: 'top left' }}>
-          <section className="grid gap-4 lg:grid-cols-[280px_1fr]">
-            <div className="space-y-3">
-              <div className="rounded-xl border border-white/10 bg-white/5 p-3 lg:p-4">
-                <div className="flex items-center justify-between">
-                  <span className="font-mono text-xs uppercase tracking-[0.12em] text-white/70">{statusLabel}</span>
-                </div>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {(Object.keys(DIFFICULTY_LABELS) as NonogramSizeTier[]).map((tier) => (
-                    <button
-                      type="button"
-                      key={tier}
-                      onClick={() => setDifficulty(tier)}
-                      className={`rounded-md border px-2 py-1 font-mono text-[11px] uppercase ${
-                        sizeTier === tier ? 'border-white/70 bg-white/15 text-white' : 'border-white/20 text-white/70'
-                      }`}
-                    >
-                      {DIFFICULTY_LABELS[tier]}
-                    </button>
-                  ))}
-                </div>
-                <div className="mt-3 grid grid-cols-2 gap-2 font-mono text-xs text-white/80">
-                  <div className="rounded-md border border-white/10 bg-black/20 px-2 py-1">
-                    크기: {model ? `${model.puzzle.size}x${model.puzzle.size}` : '-'}
-                  </div>
-                  <div className="rounded-md border border-white/10 bg-black/20 px-2 py-1 text-right">
-                    {isGenerating ? `${generationProgress}%` : formatSeconds(elapsedSeconds)}
-                  </div>
-                </div>
-                {isGenerating ? (
-                  <div className="mt-2 rounded-md border border-white/10 bg-black/20 px-2 py-1 font-mono text-[11px] text-white/70">
-                    {generationInfo || '유일해 생성 검증 중...'}
-                  </div>
-                ) : null}
-                {generationError ? (
-                  <div className="mt-2 rounded-md border border-rose-400/40 bg-rose-400/10 px-2 py-1 font-mono text-[11px] text-rose-200">
-                    {generationError}
-                  </div>
-                ) : null}
-                <div className="mt-3 grid grid-cols-3 gap-2">
-                  <button
-                    type="button"
-                    onClick={restart}
-                    disabled={!model || isGenerating}
-                    className="rounded-lg border border-white/20 bg-white/10 px-2 py-2 font-mono text-[11px] uppercase text-white disabled:opacity-40"
-                  >
-                    재시작
-                  </button>
-                  <button
-                    type="button"
-                    onClick={newPuzzle}
-                    disabled={isGenerating}
-                    className="rounded-lg border border-white/20 bg-white/10 px-2 py-2 font-mono text-[11px] uppercase text-white disabled:opacity-40"
-                  >
-                    새 퍼즐
-                  </button>
-                  <button
-                    type="button"
-                    onClick={abandon}
-                    disabled={state !== 'playing' || isGenerating}
-                    className="rounded-lg border border-accent/40 bg-accent/10 px-2 py-2 font-mono text-[11px] uppercase text-accent disabled:opacity-40"
-                  >
-                    포기
-                  </button>
-                </div>
-              </div>
-              <div className="hidden rounded-xl border border-white/10 bg-white/5 p-3 lg:block">
-                <p className="font-mono text-xs uppercase tracking-[0.12em] text-white/60">상세</p>
-                <p className="mt-2 font-mono text-sm text-white/80">난이도 티어: {DIFFICULTY_LABELS[sizeTier]}</p>
-                <p className="mt-1 font-mono text-sm text-white/80">로직 난이도: {model ? model.logicDifficulty : '-'}</p>
-                <p className="mt-1 font-mono text-sm text-white/80">로직 깊이: {model ? model.logicDepth : '-'}</p>
-              </div>
+    <section className="grid gap-4 lg:grid-cols-[280px_1fr]">
+      <div className="space-y-3">
+        <div className="rounded-xl border border-white/10 bg-white/5 p-3 lg:p-4">
+          <div className="flex items-center justify-between">
+            <span className="font-mono text-xs uppercase tracking-[0.12em] text-white/70">{statusLabel}</span>
+          </div>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {(Object.keys(DIFFICULTY_LABELS) as NonogramSizeTier[]).map((tier) => (
+              <button
+                type="button"
+                key={tier}
+                onClick={() => setDifficulty(tier)}
+                className={`rounded-md border px-2 py-1 font-mono text-[11px] uppercase ${
+                  sizeTier === tier ? 'border-white/70 bg-white/15 text-white' : 'border-white/20 text-white/70'
+                }`}
+              >
+                {DIFFICULTY_LABELS[tier]}
+              </button>
+            ))}
+          </div>
+          <div className="mt-3 grid grid-cols-2 gap-2 font-mono text-xs text-white/80">
+            <div className="rounded-md border border-white/10 bg-black/20 px-2 py-1">크기: {model ? `${model.puzzle.size}x${model.puzzle.size}` : '-'}</div>
+            <div className="rounded-md border border-white/10 bg-black/20 px-2 py-1 text-right">
+              {isGenerating ? `${generationProgress}%` : formatSeconds(elapsedSeconds)}
             </div>
-            <div className="relative">
-              {model ? (
-                <NonogramBoard
-                  board={board}
-                  rowClues={model.puzzle.rowClues}
-                  colClues={model.puzzle.colClues}
-                  onCycleCell={handleCycleCell}
-                  onPaintCell={handlePaintCell}
-                  locked={state !== 'playing' || isGenerating}
-                />
-              ) : (
-                <section className="rounded-2xl border border-white/10 bg-white/5 p-6 text-sm text-white/70">퍼즐 생성중...</section>
-              )}
-              {isGenerating ? (
-                <div className="absolute inset-0 flex items-center justify-center rounded-2xl bg-black/35 backdrop-blur-[1px]">
-                  <div className="rounded-xl border border-white/20 bg-black/45 px-4 py-3 text-center">
-                    <div className="mx-auto h-7 w-7 animate-spin rounded-full border-2 border-white/20 border-t-white" />
-                    <p className="mt-2 font-mono text-xs text-white/80">생성중 {generationProgress}%</p>
-                  </div>
-                </div>
-              ) : null}
+          </div>
+          {isGenerating ? (
+            <div className="mt-2 rounded-md border border-white/10 bg-black/20 px-2 py-1 font-mono text-[11px] text-white/70">
+              {generationInfo || '유일해 생성 검증 중...'}
             </div>
-          </section>
+          ) : null}
+          {generationError ? (
+            <div className="mt-2 rounded-md border border-rose-400/40 bg-rose-400/10 px-2 py-1 font-mono text-[11px] text-rose-200">
+              {generationError}
+            </div>
+          ) : null}
+          <div className="mt-3 grid grid-cols-3 gap-2">
+            <button
+              type="button"
+              onClick={restart}
+              disabled={!model || isGenerating}
+              className="rounded-lg border border-white/20 bg-white/10 px-2 py-2 font-mono text-[11px] uppercase text-white disabled:opacity-40"
+            >
+              재시작
+            </button>
+            <button
+              type="button"
+              onClick={newPuzzle}
+              disabled={isGenerating}
+              className="rounded-lg border border-white/20 bg-white/10 px-2 py-2 font-mono text-[11px] uppercase text-white disabled:opacity-40"
+            >
+              새 퍼즐
+            </button>
+            <button
+              type="button"
+              onClick={abandon}
+              disabled={state !== 'playing' || isGenerating}
+              className="rounded-lg border border-accent/40 bg-accent/10 px-2 py-2 font-mono text-[11px] uppercase text-accent disabled:opacity-40"
+            >
+              포기
+            </button>
+          </div>
+        </div>
+        <div className="hidden rounded-xl border border-white/10 bg-white/5 p-3 lg:block">
+          <p className="font-mono text-xs uppercase tracking-[0.12em] text-white/60">상세</p>
+          <p className="mt-2 font-mono text-sm text-white/80">난이도 티어: {DIFFICULTY_LABELS[sizeTier]}</p>
+          <p className="mt-1 font-mono text-sm text-white/80">로직 난이도: {model ? model.logicDifficulty : '-'}</p>
+          <p className="mt-1 font-mono text-sm text-white/80">로직 깊이: {model ? model.logicDepth : '-'}</p>
         </div>
       </div>
-    </div>
+      <div className="relative">
+        {model ? (
+          <NonogramBoard
+            board={board}
+            rowClues={model.puzzle.rowClues}
+            colClues={model.puzzle.colClues}
+            onCycleCell={handleCycleCell}
+            onPaintCell={handlePaintCell}
+            locked={state !== 'playing' || isGenerating}
+          />
+        ) : (
+          <section className="rounded-2xl border border-white/10 bg-white/5 p-6 text-sm text-white/70">퍼즐 생성중...</section>
+        )}
+        {isGenerating ? (
+          <div className="absolute inset-0 flex items-center justify-center rounded-2xl bg-black/35 backdrop-blur-[1px]">
+            <div className="rounded-xl border border-white/20 bg-black/45 px-4 py-3 text-center">
+              <div className="mx-auto h-7 w-7 animate-spin rounded-full border-2 border-white/20 border-t-white" />
+              <p className="mt-2 font-mono text-xs text-white/80">생성중 {generationProgress}%</p>
+            </div>
+          </div>
+        ) : null}
+      </div>
+    </section>
   );
 }

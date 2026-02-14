@@ -1,12 +1,11 @@
 import type { SudokuGrid } from './types';
 
-export type SudokuTier = 'easy' | 'medium' | 'hard' | 'expert';
+export type SudokuTier = 'easy' | 'medium' | 'hard';
 
 const GIVENS_BY_TIER: Record<SudokuTier, number> = {
   easy: 42,
   medium: 34,
-  hard: 28,
-  expert: 24
+  hard: 28
 };
 
 function mulberry32(seed: number): () => number {
@@ -33,7 +32,7 @@ function shuffled<T>(values: T[], rand: () => number): T[] {
 function parseTier(value: string | null | undefined): SudokuTier {
   if (value === 'easy') return 'easy';
   if (value === 'hard') return 'hard';
-  if (value === 'expert') return 'expert';
+  if (value === 'expert') return 'hard';
   return 'medium';
 }
 

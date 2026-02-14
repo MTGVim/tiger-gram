@@ -11,8 +11,7 @@ type GameState = 'playing' | 'won' | 'lost';
 const DIFFICULTY_LABELS: Record<SudokuTier, string> = {
   easy: '쉬움',
   medium: '보통',
-  hard: '어려움',
-  expert: '전문가'
+  hard: '어려움'
 };
 
 const STATE_LABELS: Record<GameState, string> = {
@@ -124,22 +123,24 @@ export function SudokuPage() {
           <div className="flex items-center justify-between">
             <span className="font-mono text-xs uppercase tracking-[0.12em] text-white/70">{STATE_LABELS[state]}</span>
           </div>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {(Object.keys(DIFFICULTY_LABELS) as SudokuTier[]).map((value) => (
-              <button
-                type="button"
-                key={value}
-                onClick={() => setDifficulty(value)}
-                className={`rounded-md border px-2 py-1 font-mono text-[11px] uppercase ${
-                  tier === value ? 'border-white/70 bg-white/15 text-white' : 'border-white/20 text-white/70'
-                }`}
-              >
-                {DIFFICULTY_LABELS[value]}
-              </button>
-            ))}
-          </div>
-          <div className="mt-3 grid grid-cols-1 gap-2 font-mono text-xs text-white/80">
-            <div className="rounded-md border border-white/10 bg-black/20 px-2 py-1 text-right">{formatSeconds(elapsedSeconds)}</div>
+          <div className="mt-3 flex items-center justify-between gap-2">
+            <div className="flex flex-wrap gap-2">
+              {(Object.keys(DIFFICULTY_LABELS) as SudokuTier[]).map((value) => (
+                <button
+                  type="button"
+                  key={value}
+                  onClick={() => setDifficulty(value)}
+                  className={`rounded-md border px-2 py-1 font-mono text-[11px] uppercase ${
+                    tier === value ? 'border-white/70 bg-white/15 text-white' : 'border-white/20 text-white/70'
+                  }`}
+                >
+                  {DIFFICULTY_LABELS[value]}
+                </button>
+              ))}
+            </div>
+            <div className="rounded-md border border-white/10 bg-black/20 px-2 py-1 font-mono text-xs text-white/80">
+              {formatSeconds(elapsedSeconds)}
+            </div>
           </div>
           <div className="mt-3 grid grid-cols-3 gap-2">
             <button

@@ -9,7 +9,7 @@ describe('nonogram size tiers', () => {
   it('parses difficulty from query string', () => {
     expect(parseNonogramSizeTier('easy')).toBe('easy');
     expect(parseNonogramSizeTier('hard')).toBe('hard');
-    expect(parseNonogramSizeTier('expert')).toBe('expert');
+    expect(parseNonogramSizeTier('expert')).toBe('hard');
     expect(parseNonogramSizeTier('unknown')).toBe('medium');
     expect(parseNonogramSizeTier(null)).toBe('medium');
   });
@@ -18,7 +18,6 @@ describe('nonogram size tiers', () => {
     expect(sizeForDifficulty('easy', 42)).toBe(10);
     expect(sizeForDifficulty('medium', 42)).toBe(15);
     expect(sizeForDifficulty('hard', 42)).toBe(20);
-    expect(sizeForDifficulty('expert', 42)).toBe(25);
   });
 
   it('generates puzzle using tier size', () => {

@@ -15,8 +15,10 @@ body {
   font-family: 'Space Grotesk', system-ui, sans-serif;
   background: #0b0d10;
   color: #f2f4f8;
+  overflow-x: hidden;
 }
 
 #root {
   min-height: 100vh;
+  overflow-x: hidden;
 }
