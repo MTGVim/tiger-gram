@@ -71,6 +71,7 @@ export function SudokuBoard({
 
   const selectedValue = selectedIndex !== null ? grid[selectedIndex] : 0;
   const lineHighlight = new Set<number>();
+  const boxHighlight = new Set<number>();
   const conflictIndices = new Set<number>();
 
   const registerConflicts = (indices: number[]) => {
@@ -119,6 +120,14 @@ export function SudokuBoard({
       for (let r = 0; r < 9; r += 1) {
         lineHighlight.add(r * 9 + col);
       }
+
+      const boxRow = Math.floor(row / 3) * 3;
+      const boxCol = Math.floor(col / 3) * 3;
+      for (let r = 0; r < 3; r += 1) {
+        for (let c = 0; c < 3; c += 1) {
+          boxHighlight.add((boxRow + r) * 9 + (boxCol + c));
+        }
+      }
     });
   }
 
@@ -160,8 +169,10 @@ export function SudokuBoard({
                           ? 'bg-rose-200 text-rose-900'
                           : selectedIndex === index
                           ? 'bg-sky-200 text-sky-900'
-                            : selectedValue > 0 && value === selectedValue
-                              ? 'bg-amber-100 text-amber-900'
+                          : selectedValue > 0 && value === selectedValue
+                            ? 'bg-amber-100 text-amber-900'
+                            : selectedValue > 0 && boxHighlight.has(index)
+                              ? 'bg-indigo-50/70 text-slate-900'
                             : selectedValue > 0 && lineHighlight.has(index)
                               ? 'bg-sky-50/70 text-slate-900'
                             : fixed[index]
