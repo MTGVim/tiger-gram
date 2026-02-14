@@ -1,6 +1,6 @@
-# TigerGram
+# tiger-gram
 
-TigerGram은 노노그램과 스도쿠를 하나의 UI에서 플레이할 수 있는 React + TypeScript 기반 로직 퍼즐 웹 앱입니다.
+tiger-gram은 노노그램과 스도쿠를 하나의 UI에서 플레이할 수 있는 React + TypeScript 기반 로직 퍼즐 웹 앱입니다.
 
 ## 현재 구현 기능
 - 라우팅: `/`, `/nonogram`, `/sudoku`

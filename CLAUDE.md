@@ -1,16 +1,16 @@
 # CLAUDE.md
 
-# TigerGram Implementation Snapshot
+# tiger-gram Implementation Snapshot
 Version: 2026-02-14
 
-TigerGram은 노노그램과 스도쿠를 제공하는 웹 로직 퍼즐 앱이다.
+tiger-gram은 노노그램과 스도쿠를 제공하는 웹 로직 퍼즐 앱이다.
 이 문서는 "목표 스펙"이 아니라 "현재 구현 상태"를 기록한다.
 
 ---
 
 ## 1. Product Summary
 
-- App Name: TigerGram
+- App Name: tiger-gram
 - Tagline: Pure Logic. No Luck.
 - Games: Nonogram + Sudoku
 - Platform: Web (React SPA)
