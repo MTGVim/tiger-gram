@@ -64,7 +64,7 @@ export function SudokuPage() {
   const [muted, setMuted] = useState(() => loadLocal<boolean>('muted', false));
   const winRecordedRef = useRef(false);
   const winAudioRef = useRef<HTMLAudioElement | null>(null);
-  const victoryAudioSrc = `${import.meta.env.BASE_URL}sounds/victory-fanfare.mp3`;
+  const victoryAudioSrc = `${import.meta.env.BASE_URL}sounds/ta-da.mp3`;
 
   useEffect(() => {
     winAudioRef.current = new Audio(victoryAudioSrc);
@@ -206,7 +206,8 @@ export function SudokuPage() {
   return (
     <>
       <CelebrationBurst trigger={burstSignal} />
-      <section className="grid gap-4 lg:grid-cols-[260px_1fr]">
+      <section className="grid gap-4">
+      <div className="grid gap-4 lg:grid-cols-[260px_1fr]">
       <div className="space-y-3">
         <div className="rounded-xl border border-white/10 bg-white/5 p-3 lg:p-4">
           <div className="flex items-center justify-between">
@@ -269,9 +270,6 @@ export function SudokuPage() {
           <p className="mt-2 font-mono text-sm text-white/80">난이도 티어: {DIFFICULTY_LABELS[tier]}</p>
           <p className="mt-1 font-mono text-sm text-white/80">로직 난이도: {model.difficulty}</p>
         </div>
-        <div>
-          <LeaderboardPanel game="sudoku" entries={leaderboard} difficultyLabels={DIFFICULTY_LABELS} onClear={clearLeaderboard} />
-        </div>
       </div>
       <div className="relative">
         <SudokuBoard
@@ -294,6 +292,8 @@ export function SudokuPage() {
           </div>
         ) : null}
       </div>
+      </div>
+      <LeaderboardPanel game="sudoku" entries={leaderboard} difficultyLabels={DIFFICULTY_LABELS} onClear={clearLeaderboard} />
       </section>
     </>
   );

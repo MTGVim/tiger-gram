@@ -81,7 +81,7 @@ tiger-gram은 노노그램과 스도쿠를 제공하는 웹 로직 퍼즐 앱이
 - 재시작 / 새 퍼즐 / 포기
 - 승리 시:
   - confetti burst 애니메이션
-  - 효과음 재생(`/sounds/victory-fanfare.mp3`, 음소거 토글 가능)
+  - 효과음 재생(`/sounds/ta-da.mp3`, 음소거 토글 가능)
   - 리더보드 기록
 
 ### 3.4 Leaderboard / Persistence

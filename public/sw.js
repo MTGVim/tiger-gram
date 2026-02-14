@@ -11,7 +11,7 @@ const CORE_URLS = [
   scopedUrl('manifest.webmanifest'),
   scopedUrl('favicon.png'),
   scopedUrl('concept.png'),
-  scopedUrl('sounds/victory-fanfare.mp3')
+  scopedUrl('sounds/ta-da.mp3')
 ];
 
 self.addEventListener('install', (event) => {

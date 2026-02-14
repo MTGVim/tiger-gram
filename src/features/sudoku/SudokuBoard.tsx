@@ -26,9 +26,9 @@ export function SudokuBoard({
   onClear,
   locked = false
 }: SudokuBoardProps) {
-  const CELL_WIDTH = Math.round(56 * 1.1);
-  const CELL_HEIGHT = Math.round(56 * 1.1);
-  const PAD_WIDTH = Math.round(176 * 1.2);
+  const CELL_WIDTH = Math.round(56 * 1.18);
+  const CELL_HEIGHT = Math.round(56 * 1.18);
+  const PAD_WIDTH = 162;
   const GRID_WIDTH = CELL_WIDTH * 9 + 8;
   const LAYOUT_GAP = 12;
   const BASE_WIDTH = GRID_WIDTH + PAD_WIDTH + LAYOUT_GAP;
@@ -110,7 +110,7 @@ export function SudokuBoard({
       <div ref={viewportRef} className="flex w-full justify-center overflow-hidden">
         <div className="overflow-hidden" style={{ width: BASE_WIDTH * scale, height: scaledHeight || 'auto' }}>
           <div ref={contentRef} style={{ width: `${BASE_WIDTH}px`, transform: `scale(${scale})`, transformOrigin: 'top left' }}>
-            <div className="flex items-start gap-3">
+            <div className="flex items-start gap-2">
               <div className="grid w-fit grid-cols-9 gap-0 rounded-md bg-[#efefef] p-1">
                 {grid.map((value, index) => {
                   const row = Math.floor(index / 9);
@@ -123,7 +123,7 @@ export function SudokuBoard({
                       disabled={locked}
                       onClick={() => onSelect(index)}
                       key={index}
-                      className={`relative flex items-center justify-center rounded-none font-mono text-lg ${cellBorderClass(index)} ${
+                      className={`relative flex items-center justify-center rounded-none font-mono text-xl font-bold ${cellBorderClass(index)} ${
                         selectedIndex === index
                           ? 'bg-sky-200 text-sky-900'
                           : selectedValue > 0 && value === selectedValue
@@ -139,7 +139,7 @@ export function SudokuBoard({
                       {value > 0 ? (
                         value
                       ) : notes[index].length > 0 ? (
-                        <div className="grid grid-cols-3 gap-0 text-[9px] leading-[1] text-slate-600">
+                        <div className="grid grid-cols-3 gap-0 text-[10px] font-semibold leading-[1] text-slate-700">
                           {Array.from({ length: 9 }, (_, i) => i + 1).map((n) => (
                             <span key={n} className="inline-flex h-3 w-3 items-center justify-center">
                               {notes[index].includes(n) ? n : ''}
@@ -154,15 +154,15 @@ export function SudokuBoard({
                 })}
               </div>
               <div
-                className="rounded-lg border border-slate-500/65 bg-slate-100/78 p-2 shadow-[0_8px_28px_rgba(15,23,42,0.28)] backdrop-blur-[2px]"
+                className="rounded-lg border border-slate-500/65 bg-slate-100/78 p-1 backdrop-blur-[2px]"
                 style={{ width: `${PAD_WIDTH}px` }}
               >
-                <div className="mb-1 grid grid-cols-2 gap-1">
+                <div className="mb-2 grid grid-cols-2 gap-1.5">
                   <button
                     type="button"
                     disabled={locked || selectionLocked}
                     onClick={onToggleNoteMode}
-                    className={`h-11 rounded-sm border px-1 font-mono text-sm uppercase disabled:opacity-40 ${
+                    className={`h-10 rounded-sm border px-1 font-mono text-xs font-bold uppercase disabled:opacity-40 ${
                       noteMode ? 'border-sky-500/60 bg-sky-100/75 text-sky-900' : 'border-slate-500/60 bg-slate-200/75 text-slate-900'
                     }`}
                   >
@@ -175,12 +175,12 @@ export function SudokuBoard({
                       onClear();
                       onSelect(null);
                     }}
-                    className="h-11 rounded-sm border border-slate-600/70 bg-slate-300/75 px-1 font-mono text-sm uppercase text-slate-900 disabled:opacity-40"
+                    className="h-10 rounded-sm border border-slate-600/70 bg-slate-300/75 px-1 font-mono text-xs font-bold uppercase text-slate-900 disabled:opacity-40"
                   >
                     지우기
                   </button>
                 </div>
-                <div className="grid grid-cols-3 gap-1">
+                <div className="grid grid-cols-3 gap-1.5">
                   {Array.from({ length: 9 }, (_, index) => (
                     <button
                       type="button"
@@ -190,7 +190,7 @@ export function SudokuBoard({
                         onSelect(null);
                       }}
                       key={`key-${index + 1}`}
-                      className="h-[58px] w-[58px] rounded-sm border border-slate-500/60 bg-slate-200/75 font-mono text-lg text-slate-900 disabled:opacity-40"
+                      className="h-[44px] w-[44px] rounded-sm border border-slate-500/60 bg-slate-200/75 font-mono text-base font-bold text-slate-900 disabled:opacity-40"
                     >
                       {index + 1}
                     </button>

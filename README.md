@@ -70,7 +70,7 @@ yarn dev
 
 ## 에셋
 - 랜딩 이미지: `public/concept.png` (`src/pages/LandingPage.tsx`에서 사용)
-- 승리 효과음: `public/sounds/victory-fanfare.mp3`
+- 승리 효과음: `public/sounds/ta-da.mp3`
 
 ## 서비스 URL
 - https://mtgvim.github.io/tiger-gram/

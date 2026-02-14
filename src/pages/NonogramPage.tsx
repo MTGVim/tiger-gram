@@ -97,7 +97,7 @@ export function NonogramPage() {
   const requestIdRef = useRef(0);
   const winRecordedRef = useRef(false);
   const winAudioRef = useRef<HTMLAudioElement | null>(null);
-  const victoryAudioSrc = `${import.meta.env.BASE_URL}sounds/victory-fanfare.mp3`;
+  const victoryAudioSrc = `${import.meta.env.BASE_URL}sounds/ta-da.mp3`;
 
   useEffect(() => {
     winAudioRef.current = new Audio(victoryAudioSrc);
@@ -291,7 +291,8 @@ export function NonogramPage() {
   return (
     <>
       <CelebrationBurst trigger={burstSignal} />
-      <section className="grid gap-4 lg:grid-cols-[280px_1fr]">
+      <section className="grid gap-4">
+      <div className="grid gap-4 lg:grid-cols-[280px_1fr]">
       <div className="space-y-3">
         <div className="rounded-xl border border-white/10 bg-white/5 p-3 lg:p-4">
           <div className="flex items-center justify-between">
@@ -368,9 +369,6 @@ export function NonogramPage() {
           <p className="mt-1 font-mono text-sm text-white/80">로직 난이도: {model ? model.logicDifficulty : '-'}</p>
           <p className="mt-1 font-mono text-sm text-white/80">로직 깊이: {model ? model.logicDepth : '-'}</p>
         </div>
-        <div>
-          <LeaderboardPanel game="nonogram" entries={leaderboard} difficultyLabels={DIFFICULTY_LABELS} onClear={clearLeaderboard} />
-        </div>
       </div>
       <div className="relative">
         {model ? (
@@ -402,6 +400,8 @@ export function NonogramPage() {
           </div>
         ) : null}
       </div>
+      </div>
+      <LeaderboardPanel game="nonogram" entries={leaderboard} difficultyLabels={DIFFICULTY_LABELS} onClear={clearLeaderboard} />
       </section>
     </>
   );
