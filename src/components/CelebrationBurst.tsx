@@ -63,7 +63,7 @@ export function CelebrationBurst({ trigger }: CelebrationBurstProps) {
 
       return all;
     },
-    [trigger]
+    []
   );
 
   if (!visible) return null;
