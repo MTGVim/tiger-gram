@@ -68,10 +68,10 @@ export function NonogramBoard({
   const maxRowClues = Math.max(...rowClues.map((clue) => clue.length));
   const maxColClues = Math.max(...colClues.map((clue) => clue.length));
   const boardSize = board.length;
-  const cellScale = boardSize <= 5 ? 2 : boardSize <= 10 ? 1.5 : 1;
+  const cellScale = boardSize <= 5 ? 2.3 : boardSize <= 10 ? 1.639 : 1;
   const cellSize = Math.round(40 * cellScale);
   const clueCellSize = cellSize;
-  const hintFontSize = 15;
+  const hintFontSize = 18;
   const cellFontSize = Math.max(12, Math.round(14 * cellScale));
   const rowClueWidth = Math.min(maxRowClues * 16 + 10, 200);
   const colClueHeight = maxColClues * 18 + 10;

@@ -16,9 +16,8 @@ export function AppShell({ children }: AppShellProps) {
       <header className="mb-4 flex flex-wrap items-end justify-between gap-4">
         <div className="min-w-0 flex-1">
           <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-white/45">PURE LOGIC. NO LUCK.</p>
-          <div className="mt-1 flex items-end gap-3">
+          <div className="mt-1 flex items-end">
             <h1 className="text-2xl font-bold tracking-tight text-white sm:text-4xl">tiger-gram</h1>
-            <span className="pb-1 font-mono text-[10px] uppercase tracking-[0.2em] text-white/45">Concept Art</span>
           </div>
           <nav className="mt-3 flex flex-wrap items-center gap-2 rounded-xl border border-white/10 bg-white/5 p-1">
             <NavLink to="/" end className={navClass}>

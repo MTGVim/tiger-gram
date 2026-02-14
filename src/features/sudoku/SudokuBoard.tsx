@@ -174,7 +174,7 @@ export function SudokuBoard({
               </div>
               {padPosition ? (
                 <div
-                  className="absolute z-20 rounded-lg border border-slate-500/70 bg-[#f3f4f6]/95 p-2 shadow-[0_8px_28px_rgba(15,23,42,0.3)] backdrop-blur-[1px]"
+                  className="absolute z-20 rounded-lg border border-slate-500/65 bg-slate-100/78 p-2 shadow-[0_8px_28px_rgba(15,23,42,0.28)] backdrop-blur-[2px]"
                   style={{ width: `${PAD_WIDTH}px`, left: `${padPosition.left}px`, top: `${padPosition.top}px` }}
                 >
                   <div className="mb-1 grid grid-cols-2 gap-1">
@@ -183,7 +183,7 @@ export function SudokuBoard({
                       disabled={locked || selectionLocked}
                       onClick={onToggleNoteMode}
                       className={`h-11 rounded-sm border px-1 font-mono text-sm uppercase disabled:opacity-40 ${
-                        noteMode ? 'border-sky-500/60 bg-sky-100 text-sky-900' : 'border-slate-500/60 bg-slate-200 text-slate-900'
+                        noteMode ? 'border-sky-500/60 bg-sky-100/75 text-sky-900' : 'border-slate-500/60 bg-slate-200/75 text-slate-900'
                       }`}
                     >
                       메모
@@ -195,7 +195,7 @@ export function SudokuBoard({
                         onClear();
                         onSelect(null);
                       }}
-                      className="h-11 rounded-sm border border-slate-600/70 bg-slate-300 px-1 font-mono text-sm uppercase text-slate-900 disabled:opacity-40"
+                      className="h-11 rounded-sm border border-slate-600/70 bg-slate-300/75 px-1 font-mono text-sm uppercase text-slate-900 disabled:opacity-40"
                     >
                       지우기
                     </button>
@@ -210,7 +210,7 @@ export function SudokuBoard({
                           onSelect(null);
                         }}
                         key={`key-${index + 1}`}
-                        className="h-[58px] w-[58px] rounded-sm border border-slate-500/60 bg-slate-200 font-mono text-lg text-slate-900 disabled:opacity-40"
+                        className="h-[58px] w-[58px] rounded-sm border border-slate-500/60 bg-slate-200/75 font-mono text-lg text-slate-900 disabled:opacity-40"
                       >
                         {index + 1}
                       </button>
