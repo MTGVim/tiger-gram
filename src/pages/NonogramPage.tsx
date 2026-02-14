@@ -86,6 +86,7 @@ export function NonogramPage() {
   const [generationInfo, setGenerationInfo] = useState('');
   const [generationError, setGenerationError] = useState<string | null>(null);
   const [board, setBoard] = useState<Cell[][]>([]);
+  const [selectionResetKey, setSelectionResetKey] = useState(0);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [state, setState] = useState<GameState>('playing');
   const [leaderboard, setLeaderboard] = useState<PuzzleLeaderboardEntry[]>(() => loadPuzzleLeaderboard());
@@ -137,6 +138,7 @@ export function NonogramPage() {
           logicDepth: payload.logicDepth
         });
         setBoard(blankBoard(payload.puzzle.size));
+        setSelectionResetKey((prev) => prev + 1);
         setElapsedSeconds(0);
         setState('playing');
         setGenerationProgress(100);
@@ -252,6 +254,7 @@ export function NonogramPage() {
   const restart = useCallback(() => {
     if (!model) return;
     setBoard(blankBoard(model.puzzle.size));
+    setSelectionResetKey((prev) => prev + 1);
     setElapsedSeconds(0);
     setState('playing');
     winRecordedRef.current = false;
@@ -376,6 +379,7 @@ export function NonogramPage() {
             board={board}
             rowClues={model.puzzle.rowClues}
             colClues={model.puzzle.colClues}
+            selectionResetKey={selectionResetKey}
             onCycleCell={handleCycleCell}
             onPaintCell={handlePaintCell}
             onEraseCell={handleEraseCell}

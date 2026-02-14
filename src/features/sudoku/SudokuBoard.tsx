@@ -146,6 +146,59 @@ export function SudokuBoard({
     return () => window.removeEventListener('pointerdown', handlePointerDown);
   }, [editableSelected, onSelect]);
 
+  useEffect(() => {
+    if (selectedIndex === null || locked) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.ctrlKey || event.metaKey || event.altKey) return;
+      const row = Math.floor(selectedIndex / 9);
+      const col = selectedIndex % 9;
+
+      if (event.key === 'ArrowUp') {
+        event.preventDefault();
+        onSelect((row + 8) % 9 * 9 + col);
+        return;
+      }
+
+      if (event.key === 'ArrowDown') {
+        event.preventDefault();
+        onSelect((row + 1) % 9 * 9 + col);
+        return;
+      }
+
+      if (event.key === 'ArrowLeft') {
+        event.preventDefault();
+        onSelect(row * 9 + ((col + 8) % 9));
+        return;
+      }
+
+      if (event.key === 'ArrowRight') {
+        event.preventDefault();
+        onSelect(row * 9 + ((col + 1) % 9));
+        return;
+      }
+
+      if (event.key === 'Tab') {
+        event.preventDefault();
+        onToggleNoteMode();
+        return;
+      }
+
+      if (event.key === 'Backspace' || event.key === 'Delete') {
+        event.preventDefault();
+        onClear();
+        return;
+      }
+
+      if (/^[1-9]$/.test(event.key)) {
+        event.preventDefault();
+        onInput(Number(event.key));
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [locked, onClear, onInput, onSelect, onToggleNoteMode, selectedIndex]);
+
   return (
     <section
       ref={rootRef}

@@ -55,7 +55,7 @@ export function SudokuPage() {
   const [grid, setGrid] = useState<SudokuGrid>(model.puzzle);
   const [notes, setNotes] = useState<number[][]>(emptyNotes());
   const [noteMode, setNoteMode] = useState(false);
-  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(0);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [state, setState] = useState<GameState>('playing');
   const [leaderboard, setLeaderboard] = useState<PuzzleLeaderboardEntry[]>(() => loadPuzzleLeaderboard());
@@ -79,7 +79,7 @@ export function SudokuPage() {
     setGrid(model.puzzle);
     setNotes(emptyNotes());
     setNoteMode(false);
-    setSelectedIndex(null);
+    setSelectedIndex(0);
     setElapsedSeconds(0);
     setState('playing');
     winRecordedRef.current = false;
@@ -167,7 +167,7 @@ export function SudokuPage() {
     setGrid(model.puzzle);
     setNotes(emptyNotes());
     setNoteMode(false);
-    setSelectedIndex(null);
+    setSelectedIndex(0);
     setElapsedSeconds(0);
     setState('playing');
     winRecordedRef.current = false;

@@ -5,6 +5,7 @@ type NonogramBoardProps = {
   board: Grid;
   rowClues: number[][];
   colClues: number[][];
+  selectionResetKey?: number;
   onCycleCell: (row: number, col: number) => void;
   onPaintCell: (row: number, col: number) => void;
   onEraseCell: (row: number, col: number) => void;
@@ -16,6 +17,7 @@ export function NonogramBoard({
   board,
   rowClues,
   colClues,
+  selectionResetKey = 0,
   onCycleCell,
   onPaintCell,
   onEraseCell,
@@ -25,11 +27,14 @@ export function NonogramBoard({
   const BASE_WIDTH = 800;
   const draggingRef = useRef(false);
   const dragFillRef = useRef(true);
+  const keyboardDragActiveRef = useRef(false);
+  const keyboardDragFillRef = useRef(true);
   const lastDraggedCellRef = useRef<string | null>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
   const [scaledHeight, setScaledHeight] = useState(0);
+  const [selectedCell, setSelectedCell] = useState({ row: 0, col: 0 });
 
   useEffect(() => {
     const stopDragging = () => {
@@ -64,6 +69,11 @@ export function NonogramBoard({
       window.removeEventListener('resize', updateScale);
     };
   }, []);
+
+  useEffect(() => {
+    setSelectedCell({ row: 0, col: 0 });
+    keyboardDragActiveRef.current = false;
+  }, [selectionResetKey, board.length]);
 
   const maxRowClues = Math.max(...rowClues.map((clue) => clue.length));
   const maxColClues = Math.max(...colClues.map((clue) => clue.length));
@@ -120,9 +130,60 @@ export function NonogramBoard({
     const key = `${row}-${col}`;
     if (lastDraggedCellRef.current === key) return;
     lastDraggedCellRef.current = key;
+    setSelectedCell({ row, col });
     if (dragFillRef.current) onPaintCell(row, col);
     else onEraseCell(row, col);
   };
+
+  useEffect(() => {
+    if (board.length === 0) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.ctrlKey || event.metaKey || event.altKey) return;
+
+      if (event.key === ' ') {
+        event.preventDefault();
+        if (locked || event.repeat) return;
+        keyboardDragActiveRef.current = true;
+        const shouldFill = board[selectedCell.row]?.[selectedCell.col] !== 1;
+        keyboardDragFillRef.current = shouldFill;
+        if (shouldFill) onPaintCell(selectedCell.row, selectedCell.col);
+        else onEraseCell(selectedCell.row, selectedCell.col);
+        return;
+      }
+
+      if (!['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.key)) return;
+      event.preventDefault();
+      if (locked) return;
+
+      let nextRow = selectedCell.row;
+      let nextCol = selectedCell.col;
+      if (event.key === 'ArrowUp') nextRow = Math.max(0, selectedCell.row - 1);
+      if (event.key === 'ArrowDown') nextRow = Math.min(board.length - 1, selectedCell.row + 1);
+      if (event.key === 'ArrowLeft') nextCol = Math.max(0, selectedCell.col - 1);
+      if (event.key === 'ArrowRight') nextCol = Math.min(board.length - 1, selectedCell.col + 1);
+
+      if (nextRow === selectedCell.row && nextCol === selectedCell.col) return;
+      setSelectedCell({ row: nextRow, col: nextCol });
+      if (keyboardDragActiveRef.current) {
+        if (keyboardDragFillRef.current) onPaintCell(nextRow, nextCol);
+        else onEraseCell(nextRow, nextCol);
+      }
+    };
+
+    const handleKeyUp = (event: KeyboardEvent) => {
+      if (event.key === ' ') {
+        keyboardDragActiveRef.current = false;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, [board, locked, onEraseCell, onPaintCell, selectedCell]);
 
   return (
     <section
@@ -131,7 +192,7 @@ export function NonogramBoard({
     >
       <div ref={viewportRef} className="flex w-full justify-center overflow-hidden">
         <div className="overflow-hidden" style={{ width: BASE_WIDTH * scale, height: scaledHeight || 'auto' }}>
-          <div ref={contentRef} className="w-[800px]" style={{ transform: `scale(${scale})`, transformOrigin: 'top left' }}>
+          <div ref={contentRef} className="w-[800px] pb-2" style={{ transform: `scale(${scale})`, transformOrigin: 'top left' }}>
             <div className="mx-auto w-fit">
               <div className="flex gap-1">
                 <div style={{ width: rowClueWidth }} />
@@ -192,6 +253,7 @@ export function NonogramBoard({
                         onPointerDown={(event) => {
                           if (event.pointerType === 'mouse' && event.button !== 0) return;
                           if (event.pointerType !== 'mouse') event.preventDefault();
+                          setSelectedCell({ row: r, col: c });
                           draggingRef.current = true;
                           const shouldFill = board[r][c] !== 1;
                           dragFillRef.current = shouldFill;
@@ -208,7 +270,9 @@ export function NonogramBoard({
                           cell === 1
                             ? 'bg-slate-600 text-slate-100'
                             : 'bg-[#efefef] text-slate-500'
-                        } ${conflictCells?.has(`${r}-${c}`) ? 'animate-pulse border-rose-500 bg-rose-200' : ''}`}
+                        } ${selectedCell.row === r && selectedCell.col === c ? 'ring-2 ring-sky-400 ring-offset-1 ring-offset-[#e7e7e7]' : ''} ${
+                          conflictCells?.has(`${r}-${c}`) ? 'animate-pulse border-rose-500 bg-rose-200' : ''
+                        }`}
                       />
                     ))}
                   </div>
