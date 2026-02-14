@@ -64,5 +64,5 @@ yarn dev
 - 랜딩 이미지: `public/concept.png` (`src/pages/LandingPage.tsx`에서 사용)
 - 승리 효과음: `public/sounds/victory-fanfare.mp3`
 
-## 저장소
-- https://github.com/MTGVim/tiger-gram
+## 서비스 URL
+- https://mtgvim.github.io/tiger-gram/
