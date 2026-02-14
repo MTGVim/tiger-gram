@@ -31,9 +31,10 @@ function shuffled<T>(values: T[], rand: () => number): T[] {
 
 function parseTier(value: string | null | undefined): SudokuTier {
   if (value === 'easy') return 'easy';
+  if (value === 'medium') return 'medium';
   if (value === 'hard') return 'hard';
   if (value === 'expert') return 'hard';
-  return 'medium';
+  return 'easy';
 }
 
 const BASE: SudokuGrid = [

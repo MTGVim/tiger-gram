@@ -217,11 +217,12 @@ export function candidateSizesForDifficulty(tier: NonogramSizeTier, seed: number
 
 export function parseNonogramSizeTier(value: string | null | undefined): NonogramSizeTier {
   if (value === 'easy') return 'easy';
+  if (value === 'medium') return 'medium';
   if (value === 'veryeasy' || value === 'very-easy') return 'easy';
   if (value === 'normal') return 'medium';
   if (value === 'hard') return 'hard';
   if (value === 'expert') return 'hard'; // legacy alias
-  return 'medium';
+  return 'easy';
 }
 
 export function sizeForDifficulty(tier: NonogramSizeTier, seed: number): number {

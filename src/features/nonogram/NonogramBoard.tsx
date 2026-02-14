@@ -64,7 +64,7 @@ export function NonogramBoard({
   const boardSize = board.length;
   const cellScale = boardSize <= 5 ? 2 : boardSize <= 10 ? 1.5 : 1;
   const cellSize = Math.round(40 * cellScale);
-  const clueCellSize = 40;
+  const clueCellSize = cellSize;
   const hintFontSize = 15;
   const cellFontSize = Math.max(12, Math.round(14 * cellScale));
   const rowClueWidth = Math.min(maxRowClues * 16 + 10, 200);
@@ -91,6 +91,25 @@ export function NonogramBoard({
     return normalizedRuns.length === target.length && normalizedRuns.every((value, i) => value === target[i]);
   };
 
+  const isColSatisfied = (colIndex: number): boolean => {
+    const runs: number[] = [];
+    let run = 0;
+
+    for (let r = 0; r < board.length; r += 1) {
+      if (board[r][colIndex] === 1) {
+        run += 1;
+      } else if (run > 0) {
+        runs.push(run);
+        run = 0;
+      }
+    }
+
+    if (run > 0) runs.push(run);
+    const normalizedRuns = runs.length > 0 ? runs : [0];
+    const target = colClues[colIndex];
+    return normalizedRuns.length === target.length && normalizedRuns.every((value, i) => value === target[i]);
+  };
+
   return (
     <section
       className="box-border max-w-full overflow-hidden rounded-2xl border border-slate-400/60 bg-[#e7e7e7] p-3 text-slate-900 sm:p-4"
@@ -106,7 +125,9 @@ export function NonogramBoard({
                   {colClues.map((clue, index) => (
                     <div
                       key={`cc-${index}`}
-                      className="flex flex-col items-center justify-end gap-0.5 pb-1 font-mono font-bold text-slate-800"
+                      className={`flex flex-col items-center justify-end gap-0.5 pb-1 font-mono font-bold ${
+                        isColSatisfied(index) ? 'text-emerald-600' : 'text-slate-800'
+                      }`}
                       style={{ width: clueCellSize, height: colClueHeight, fontSize: hintFontSize }}
                     >
                       {clue.map((value, i) => (

@@ -29,6 +29,16 @@ yarn dev
 - `yarn test`: 테스트 실행
 - `yarn lint`: 린트 실행
 
+## GitHub Pages 배포
+- 워크플로우: `.github/workflows/deploy-pages.yml`
+- 트리거: `main` 브랜치 push 또는 수동 실행(`workflow_dispatch`)
+- 배포 산출물: `dist/` (`index.html`을 `404.html`로 복사해 SPA 라우팅 지원)
+
+### 저장소 설정
+1. GitHub 저장소 `Settings > Pages`로 이동
+2. `Source`를 `GitHub Actions`로 선택
+3. `main`에 푸시하면 자동 배포
+
 ## 난이도 정책
 ### 노노그램 크기 티어
 - `easy`: `5x5`

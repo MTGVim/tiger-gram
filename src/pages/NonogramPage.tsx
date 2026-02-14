@@ -1,7 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { CelebrationBurst } from '../components/CelebrationBurst';
+import { LeaderboardPanel } from '../components/LeaderboardPanel';
 import { NonogramBoard } from '../features/nonogram/NonogramBoard';
 import { parseNonogramSizeTier, type NonogramSizeTier } from '../features/nonogram/generator';
+import { clearPuzzleLeaderboard, loadPuzzleLeaderboard, recordPuzzleClear, savePuzzleLeaderboard, type PuzzleLeaderboardEntry } from '../lib/leaderboard';
+import { loadLocal, saveLocal } from '../lib/persistence';
 import type { NonogramDifficulty, NonogramPuzzle, Cell } from '../features/nonogram/types';
 
 type GameState = 'playing' | 'won' | 'lost';
@@ -56,6 +60,21 @@ function rowMatchesClue(row: Cell[], clue: number[]): boolean {
   return normalizedRuns.length === clue.length && normalizedRuns.every((value, i) => value === clue[i]);
 }
 
+function colMatchesClue(board: Cell[][], colIndex: number, clue: number[]): boolean {
+  const runs: number[] = [];
+  let run = 0;
+  for (let r = 0; r < board.length; r += 1) {
+    if (board[r][colIndex] === 1) run += 1;
+    else if (run > 0) {
+      runs.push(run);
+      run = 0;
+    }
+  }
+  if (run > 0) runs.push(run);
+  const normalizedRuns = runs.length > 0 ? runs : [0];
+  return normalizedRuns.length === clue.length && normalizedRuns.every((value, i) => value === clue[i]);
+}
+
 export function NonogramPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const sizeTier = parseNonogramSizeTier(searchParams.get('difficulty'));
@@ -68,9 +87,24 @@ export function NonogramPage() {
   const [board, setBoard] = useState<Cell[][]>([]);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [state, setState] = useState<GameState>('playing');
+  const [leaderboard, setLeaderboard] = useState<PuzzleLeaderboardEntry[]>(() => loadPuzzleLeaderboard());
+  const [burstSignal, setBurstSignal] = useState(0);
+  const [toast, setToast] = useState<string | null>(null);
+  const [muted, setMuted] = useState(() => loadLocal<boolean>('muted', false));
 
   const workerRef = useRef<Worker | null>(null);
   const requestIdRef = useRef(0);
+  const winRecordedRef = useRef(false);
+  const winAudioRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    winAudioRef.current = new Audio('/sounds/victory-fanfare.mp3');
+    winAudioRef.current.preload = 'auto';
+  }, []);
+
+  useEffect(() => {
+    saveLocal('muted', muted);
+  }, [muted]);
 
   useEffect(() => {
     const worker = new Worker(new URL('../features/nonogram/nonogram.worker.ts', import.meta.url), { type: 'module' });
@@ -107,6 +141,7 @@ export function NonogramPage() {
         setGenerationInfo('');
         setGenerationError(null);
         setIsGenerating(false);
+        winRecordedRef.current = false;
       }
     };
 
@@ -138,10 +173,33 @@ export function NonogramPage() {
     return () => window.clearInterval(timer);
   }, [isGenerating, state]);
 
+  useEffect(() => {
+    if (state !== 'won' || isGenerating || winRecordedRef.current) return;
+    winRecordedRef.current = true;
+    setBurstSignal((prev) => prev + 1);
+    setToast('승리!');
+    window.setTimeout(() => setToast(null), 1600);
+    if (!muted && winAudioRef.current) {
+      winAudioRef.current.currentTime = 0;
+      winAudioRef.current.play().catch(() => {});
+    }
+    setLeaderboard((prev) => {
+      const next = recordPuzzleClear(prev, {
+        game: 'nonogram',
+        difficulty: sizeTier,
+        seconds: elapsedSeconds
+      });
+      savePuzzleLeaderboard(next);
+      return next;
+    });
+  }, [elapsedSeconds, isGenerating, muted, sizeTier, state]);
+
   const completeIfSolved = useCallback(
     (nextBoard: Cell[][]) => {
       if (!model) return;
-      const solved = nextBoard.every((row, rowIndex) => rowMatchesClue(row, model.puzzle.rowClues[rowIndex]));
+      const rowsSolved = nextBoard.every((row, rowIndex) => rowMatchesClue(row, model.puzzle.rowClues[rowIndex]));
+      const colsSolved = model.puzzle.colClues.every((clue, colIndex) => colMatchesClue(nextBoard, colIndex, clue));
+      const solved = rowsSolved && colsSolved;
       if (solved) setState('won');
     },
     [model]
@@ -194,10 +252,12 @@ export function NonogramPage() {
     setBoard(blankBoard(model.puzzle.size));
     setElapsedSeconds(0);
     setState('playing');
+    winRecordedRef.current = false;
   }, [model]);
 
   const newPuzzle = useCallback(() => {
     setSeed((prev) => prev + 1);
+    winRecordedRef.current = false;
   }, []);
 
   const abandon = useCallback(() => {
@@ -217,13 +277,31 @@ export function NonogramPage() {
   );
 
   const statusLabel = useMemo(() => (isGenerating ? '생성중' : STATE_LABELS[state]), [isGenerating, state]);
+  const clearLeaderboard = useCallback(() => {
+    if (!window.confirm('노노그램 리더보드를 초기화할까요?')) return;
+    setLeaderboard((prev) => {
+      const next = clearPuzzleLeaderboard(prev, 'nonogram');
+      savePuzzleLeaderboard(next);
+      return next;
+    });
+  }, []);
 
   return (
-    <section className="grid gap-4 lg:grid-cols-[280px_1fr]">
+    <>
+      <CelebrationBurst trigger={burstSignal} />
+      <section className="grid gap-4 lg:grid-cols-[280px_1fr]">
       <div className="space-y-3">
         <div className="rounded-xl border border-white/10 bg-white/5 p-3 lg:p-4">
           <div className="flex items-center justify-between">
             <span className="font-mono text-xs uppercase tracking-[0.12em] text-white/70">{statusLabel}</span>
+            <button
+              type="button"
+              onClick={() => setMuted((prev) => !prev)}
+              aria-pressed={muted}
+              className="rounded-md border border-white/20 bg-white/10 px-2 py-1 font-mono text-[11px] text-white/80"
+            >
+              {muted ? '음소거' : '소리 켜짐'}
+            </button>
           </div>
           <div className="mt-3 flex flex-wrap gap-2">
             {(Object.keys(DIFFICULTY_LABELS) as NonogramSizeTier[]).map((tier) => (
@@ -288,6 +366,9 @@ export function NonogramPage() {
           <p className="mt-1 font-mono text-sm text-white/80">로직 난이도: {model ? model.logicDifficulty : '-'}</p>
           <p className="mt-1 font-mono text-sm text-white/80">로직 깊이: {model ? model.logicDepth : '-'}</p>
         </div>
+        <div>
+          <LeaderboardPanel game="nonogram" entries={leaderboard} difficultyLabels={DIFFICULTY_LABELS} onClear={clearLeaderboard} />
+        </div>
       </div>
       <div className="relative">
         {model ? (
@@ -311,7 +392,15 @@ export function NonogramPage() {
             </div>
           </div>
         ) : null}
+        {toast ? (
+          <div className="pointer-events-none absolute inset-0 z-30 flex items-center justify-center">
+            <div className="rounded-lg border border-emerald-200/90 bg-emerald-700/85 px-5 py-3 font-mono text-base font-bold text-white shadow-[0_6px_20px_rgba(16,185,129,0.45)] backdrop-blur-sm">
+              {toast}
+            </div>
+          </div>
+        ) : null}
       </div>
-    </section>
+      </section>
+    </>
   );
 }

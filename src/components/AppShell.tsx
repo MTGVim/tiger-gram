@@ -13,7 +13,7 @@ export function AppShell({ children }: AppShellProps) {
 
   return (
     <main className="mx-auto min-h-screen w-full max-w-none overflow-x-hidden px-3 py-6 sm:px-8 lg:max-w-6xl">
-      <header className="mb-8 flex flex-wrap items-end justify-between gap-4 border-b border-white/10 pb-5">
+      <header className="mb-4 flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-white/45">PURE LOGIC. NO LUCK.</p>
           <div className="mt-1 flex items-center justify-between gap-3">

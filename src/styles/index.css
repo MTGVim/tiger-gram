@@ -22,3 +22,40 @@ body {
   min-height: 100vh;
   overflow-x: hidden;
 }
+
+.confetti-piece {
+  position: absolute;
+  top: 0;
+  width: 8px;
+  height: 16px;
+  background: var(--color, #38bdf8);
+  border-radius: 2px;
+  opacity: 0;
+  transform-origin: center;
+  box-shadow: 0 0 12px color-mix(in srgb, var(--color, #38bdf8) 45%, transparent);
+  animation: firework-burst var(--duration, 1.2s) cubic-bezier(0.17, 0.67, 0.12, 1) var(--delay, 0s) forwards;
+}
+
+.confetti-piece[data-shape='dot'] {
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+}
+
+@keyframes firework-burst {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(var(--scale, 1));
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(var(--dx, 0px), var(--dy, 0px), 0) rotate(var(--rotate, 180deg)) scale(calc(var(--scale, 1) * 0.8));
+    opacity: 0;
+  }
+}

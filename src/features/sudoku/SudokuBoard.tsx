@@ -3,9 +3,12 @@ import type { SudokuGrid } from './types';
 
 type SudokuBoardProps = {
   grid: SudokuGrid;
+  notes: number[][];
+  noteMode: boolean;
+  onToggleNoteMode: () => void;
   fixed: boolean[];
   selectedIndex: number | null;
-  onSelect: (index: number) => void;
+  onSelect: (index: number | null) => void;
   onInput: (value: number) => void;
   onClear: () => void;
   locked?: boolean;
@@ -13,6 +16,9 @@ type SudokuBoardProps = {
 
 export function SudokuBoard({
   grid,
+  notes,
+  noteMode,
+  onToggleNoteMode,
   fixed,
   selectedIndex,
   onSelect,
@@ -21,15 +27,21 @@ export function SudokuBoard({
   locked = false
 }: SudokuBoardProps) {
   const BASE_WIDTH = 800;
+  const CELL_SIZE = 56;
+  const GRID_PADDING = 4;
+  const PAD_WIDTH = 176;
+  const PAD_HEIGHT = 244;
   const viewportRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
+  const [viewportWidth, setViewportWidth] = useState(BASE_WIDTH);
   const [scaledHeight, setScaledHeight] = useState(0);
 
   useLayoutEffect(() => {
     const updateScale = () => {
       const targetWidth = viewportRef.current?.clientWidth ?? BASE_WIDTH;
       const nextScale = Math.min(1, Math.max(0, targetWidth / BASE_WIDTH));
+      setViewportWidth(targetWidth);
       setScale(nextScale);
       if (contentRef.current) {
         setScaledHeight(contentRef.current.scrollHeight * nextScale);
@@ -75,16 +87,36 @@ export function SudokuBoard({
   }
 
   const selectionLocked = selectedIndex === null ? true : fixed[selectedIndex];
+  const editableSelected = selectedIndex !== null && !selectionLocked;
+  const compactPad = viewportWidth < 760;
+  const padPosition = (() => {
+    if (!editableSelected || selectedIndex === null || compactPad) return null;
+    const row = Math.floor(selectedIndex / 9);
+    const col = selectedIndex % 9;
+    const boardWidth = GRID_PADDING * 2 + CELL_SIZE * 9;
+    const boardHeight = GRID_PADDING * 2 + CELL_SIZE * 9;
+    const cellX = GRID_PADDING + col * CELL_SIZE;
+    const cellY = GRID_PADDING + row * CELL_SIZE;
+
+    let left = cellX + CELL_SIZE + 10;
+    if (left + PAD_WIDTH > boardWidth - 2) {
+      left = cellX - PAD_WIDTH - 10;
+    }
+
+    const maxTop = boardHeight - PAD_HEIGHT - GRID_PADDING;
+    const top = Math.max(GRID_PADDING, Math.min(cellY - 6, maxTop));
+    return { left, top };
+  })();
 
   return (
     <section
       className="box-border max-w-full overflow-hidden rounded-2xl border border-slate-400/60 bg-[#e7e7e7] p-3 text-slate-900 sm:p-4"
-      style={{ width: 'min(98vw, 800px)', marginInline: 'auto' }}
+      style={{ width: 'min(96vw, 800px)', marginInline: 'auto' }}
     >
       <div ref={viewportRef} className="flex w-full justify-center overflow-hidden">
         <div className="overflow-hidden" style={{ width: BASE_WIDTH * scale, height: scaledHeight || 'auto' }}>
           <div ref={contentRef} className="w-[800px]" style={{ transform: `scale(${scale})`, transformOrigin: 'top left' }}>
-            <div className="mx-auto w-fit">
+            <div className="relative mx-auto w-fit">
               <div className="grid w-fit grid-cols-9 gap-0 rounded-md bg-[#efefef] p-1">
                 {grid.map((value, index) => {
                   const row = Math.floor(index / 9);
@@ -97,7 +129,7 @@ export function SudokuBoard({
                       disabled={locked}
                       onClick={() => onSelect(index)}
                       key={index}
-                      className={`flex h-12 w-12 items-center justify-center rounded-none font-mono text-base ${cellBorderClass(index)} ${
+                      className={`relative flex h-14 w-14 items-center justify-center rounded-none font-mono text-lg ${cellBorderClass(index)} ${
                         selectedIndex === index
                           ? 'bg-sky-200 text-sky-900'
                           : selectedValue > 0 && value === selectedValue
@@ -109,32 +141,114 @@ export function SudokuBoard({
                                 : 'bg-transparent text-slate-800'
                       }`}
                     >
-                      {value || '·'}
+                      {value > 0 ? (
+                        value
+                      ) : notes[index].length > 0 ? (
+                        <div className="grid grid-cols-3 gap-0 text-[9px] leading-[1] text-slate-600">
+                          {Array.from({ length: 9 }, (_, i) => i + 1).map((n) => (
+                            <span key={n} className="inline-flex h-3 w-3 items-center justify-center">
+                              {notes[index].includes(n) ? n : ''}
+                            </span>
+                          ))}
+                        </div>
+                      ) : (
+                        '·'
+                      )}
                     </button>
                   );
                 })}
               </div>
-              <div className="mt-4 grid w-fit grid-cols-5 gap-1">
-                {Array.from({ length: 9 }, (_, index) => (
-                  <button
-                    type="button"
-                    disabled={locked || selectedIndex === null || selectionLocked}
-                    onClick={() => onInput(index + 1)}
-                    key={`key-${index + 1}`}
-                    className="h-11 w-11 rounded-sm border border-slate-500/60 bg-slate-200 font-mono text-base text-slate-900 disabled:opacity-40"
-                  >
-                    {index + 1}
-                  </button>
-                ))}
-                <button
-                  type="button"
-                  disabled={locked || selectedIndex === null || selectionLocked}
-                  onClick={onClear}
-                  className="col-span-2 h-11 rounded-sm border border-slate-600/70 bg-slate-300 px-2 font-mono text-base uppercase text-slate-900 disabled:opacity-40"
+              {editableSelected && compactPad ? (
+                <div className="mt-3 flex justify-center">
+                  <div className="w-44 rounded-lg border border-slate-500/70 bg-[#f3f4f6]/95 p-2 shadow-[0_8px_28px_rgba(15,23,42,0.3)] backdrop-blur-[1px]">
+                    <div className="mb-1 grid grid-cols-2 gap-1">
+                      <button
+                        type="button"
+                        disabled={locked || selectionLocked}
+                        onClick={onToggleNoteMode}
+                        className={`h-9 rounded-sm border px-1 font-mono text-xs uppercase disabled:opacity-40 ${
+                          noteMode ? 'border-sky-500/60 bg-sky-100 text-sky-900' : 'border-slate-500/60 bg-slate-200 text-slate-900'
+                        }`}
+                      >
+                        메모
+                      </button>
+                      <button
+                        type="button"
+                        disabled={locked || selectionLocked}
+                        onClick={() => {
+                          onClear();
+                          onSelect(null);
+                        }}
+                        className="h-9 rounded-sm border border-slate-600/70 bg-slate-300 px-1 font-mono text-xs uppercase text-slate-900 disabled:opacity-40"
+                      >
+                        지우기
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-3 gap-1">
+                      {Array.from({ length: 9 }, (_, index) => (
+                        <button
+                          type="button"
+                          disabled={locked || selectionLocked}
+                          onClick={() => {
+                            onInput(index + 1);
+                            onSelect(null);
+                          }}
+                          key={`compact-key-${index + 1}`}
+                          className="h-10 w-10 rounded-sm border border-slate-500/60 bg-slate-200 font-mono text-base text-slate-900 disabled:opacity-40"
+                        >
+                          {index + 1}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ) : null}
+              {padPosition ? (
+                <div
+                  className="absolute z-20 w-44 rounded-lg border border-slate-500/70 bg-[#f3f4f6]/95 p-2 shadow-[0_8px_28px_rgba(15,23,42,0.3)] backdrop-blur-[1px]"
+                  style={{ left: `${padPosition.left}px`, top: `${padPosition.top}px` }}
                 >
-                  지우기
-                </button>
-              </div>
+                  <div className="mb-1 grid grid-cols-2 gap-1">
+                    <button
+                      type="button"
+                      disabled={locked || selectionLocked}
+                      onClick={onToggleNoteMode}
+                      className={`h-9 rounded-sm border px-1 font-mono text-xs uppercase disabled:opacity-40 ${
+                        noteMode ? 'border-sky-500/60 bg-sky-100 text-sky-900' : 'border-slate-500/60 bg-slate-200 text-slate-900'
+                      }`}
+                    >
+                      메모
+                    </button>
+                    <button
+                      type="button"
+                      disabled={locked || selectionLocked}
+                      onClick={() => {
+                        onClear();
+                        onSelect(null);
+                      }}
+                      className="h-9 rounded-sm border border-slate-600/70 bg-slate-300 px-1 font-mono text-xs uppercase text-slate-900 disabled:opacity-40"
+                    >
+                      지우기
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-3 gap-1">
+                    {Array.from({ length: 9 }, (_, index) => (
+                      <button
+                        type="button"
+                        disabled={locked || selectionLocked}
+                        onClick={() => {
+                          onInput(index + 1);
+                          onSelect(null);
+                        }}
+                        key={`key-${index + 1}`}
+                        className="h-10 w-10 rounded-sm border border-slate-500/60 bg-slate-200 font-mono text-base text-slate-900 disabled:opacity-40"
+                      >
+                        {index + 1}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
             </div>
           </div>
         </div>
