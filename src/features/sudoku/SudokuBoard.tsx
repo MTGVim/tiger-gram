@@ -26,22 +26,38 @@ export function SudokuBoard({
   onClear,
   locked = false
 }: SudokuBoardProps) {
+  const MOBILE_STACK_BREAKPOINT = 800;
   const CELL_WIDTH = Math.round(56 * 1.18);
   const CELL_HEIGHT = Math.round(56 * 1.18);
-  const PAD_WIDTH = 162;
   const GRID_WIDTH = CELL_WIDTH * 9 + 8;
   const LAYOUT_GAP = 12;
-  const BASE_WIDTH = GRID_WIDTH + PAD_WIDTH + LAYOUT_GAP;
+  const PAD_BASE_WIDTH = 162;
   const rootRef = useRef<HTMLElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
+  const [stackedLayout, setStackedLayout] = useState(() => (typeof window === 'undefined' ? false : window.innerWidth < MOBILE_STACK_BREAKPOINT));
+  const PAD_SCALE = stackedLayout ? 2 : 1;
+  const FONT_SCALE = stackedLayout ? 2.1 : 1.15;
+  const PAD_WIDTH = Math.round(PAD_BASE_WIDTH * PAD_SCALE);
+  const PAD_CONTROL_HEIGHT = Math.round(40 * PAD_SCALE);
+  const PAD_NUMBER_SIZE = Math.round(44 * PAD_SCALE);
+  const STACKED_BUTTON_SIZE = Math.round(44 * 1.5);
+  const STACKED_CONTROL_BUTTON_WIDTH = STACKED_BUTTON_SIZE * 2;
   const [scale, setScale] = useState(1);
   const [scaledHeight, setScaledHeight] = useState(0);
+  const baseWidth = stackedLayout ? GRID_WIDTH : GRID_WIDTH + PAD_WIDTH + LAYOUT_GAP;
+  const keypadValues = [7, 8, 9, 4, 5, 6, 1, 2, 3];
+  const stackedTopKeypadValues = [1, 2, 3, 4, 5];
+  const stackedBottomKeypadValues = [6, 7, 8, 9];
 
   useLayoutEffect(() => {
     const updateScale = () => {
-      const targetWidth = viewportRef.current?.clientWidth ?? BASE_WIDTH;
-      const nextScale = Math.min(1, Math.max(0, targetWidth / BASE_WIDTH));
+      const nextStackedLayout = window.innerWidth < MOBILE_STACK_BREAKPOINT;
+      if (nextStackedLayout !== stackedLayout) {
+        setStackedLayout(nextStackedLayout);
+      }
+      const targetWidth = viewportRef.current?.clientWidth ?? baseWidth;
+      const nextScale = Math.min(1, Math.max(0, targetWidth / baseWidth));
       setScale(nextScale);
       if (contentRef.current) {
         setScaledHeight(contentRef.current.scrollHeight * nextScale);
@@ -57,7 +73,7 @@ export function SudokuBoard({
       observer.disconnect();
       window.removeEventListener('resize', updateScale);
     };
-  }, [BASE_WIDTH]);
+  }, [baseWidth, stackedLayout]);
 
   const cellBorderClass = (index: number): string => {
     const row = Math.floor(index / 9);
@@ -147,35 +163,38 @@ export function SudokuBoard({
   }, [editableSelected, onSelect]);
 
   useEffect(() => {
-    if (selectedIndex === null || locked) return;
+    if (locked) return;
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.ctrlKey || event.metaKey || event.altKey) return;
-      const row = Math.floor(selectedIndex / 9);
-      const col = selectedIndex % 9;
+      const row = selectedIndex === null ? 0 : Math.floor(selectedIndex / 9);
+      const col = selectedIndex === null ? 0 : selectedIndex % 9;
+      const hasSelection = selectedIndex !== null;
 
       if (event.key === 'ArrowUp') {
         event.preventDefault();
-        onSelect((row + 8) % 9 * 9 + col);
+        onSelect(hasSelection ? ((row + 8) % 9) * 9 + col : 0);
         return;
       }
 
       if (event.key === 'ArrowDown') {
         event.preventDefault();
-        onSelect((row + 1) % 9 * 9 + col);
+        onSelect(hasSelection ? ((row + 1) % 9) * 9 + col : 0);
         return;
       }
 
       if (event.key === 'ArrowLeft') {
         event.preventDefault();
-        onSelect(row * 9 + ((col + 8) % 9));
+        onSelect(hasSelection ? row * 9 + ((col + 8) % 9) : 0);
         return;
       }
 
       if (event.key === 'ArrowRight') {
         event.preventDefault();
-        onSelect(row * 9 + ((col + 1) % 9));
+        onSelect(hasSelection ? row * 9 + ((col + 1) % 9) : 0);
         return;
       }
+
+      if (!hasSelection) return;
 
       if (event.key === 'Tab') {
         event.preventDefault();
@@ -203,12 +222,12 @@ export function SudokuBoard({
     <section
       ref={rootRef}
       className="box-border max-w-full overflow-hidden rounded-2xl border border-slate-400/60 bg-[#e7e7e7] p-3 text-slate-900 sm:p-4"
-      style={{ width: `min(96vw, ${BASE_WIDTH}px)`, marginInline: 'auto' }}
+      style={{ width: `min(96vw, ${baseWidth}px)`, marginInline: 'auto' }}
     >
       <div ref={viewportRef} className="flex w-full justify-center overflow-hidden">
-        <div className="overflow-hidden" style={{ width: BASE_WIDTH * scale, height: scaledHeight || 'auto' }}>
-          <div ref={contentRef} style={{ width: `${BASE_WIDTH}px`, transform: `scale(${scale})`, transformOrigin: 'top left' }}>
-            <div className="flex items-start gap-2">
+        <div className="overflow-hidden" style={{ width: baseWidth * scale, height: scaledHeight || 'auto' }}>
+          <div ref={contentRef} style={{ width: `${baseWidth}px`, transform: `scale(${scale})`, transformOrigin: 'top left' }}>
+            <div className={`flex items-start ${stackedLayout ? 'flex-col gap-3' : 'gap-2'}`}>
               <div className="grid w-fit grid-cols-9 gap-0 rounded-md bg-[#efefef] p-1">
                 {grid.map((value, index) => {
                   return (
@@ -217,7 +236,7 @@ export function SudokuBoard({
                       disabled={locked}
                       onClick={() => onSelect(index)}
                       key={index}
-                      className={`relative flex items-center justify-center rounded-none font-mono text-xl font-bold ${cellBorderClass(index)} ${
+                      className={`relative flex items-center justify-center rounded-none font-mono font-bold ${cellBorderClass(index)} ${
                         conflictIndices.has(index)
                           ? 'bg-rose-200 text-rose-900'
                           : selectedIndex === index
@@ -232,12 +251,12 @@ export function SudokuBoard({
                                 ? 'bg-slate-300 text-slate-900'
                                 : 'bg-transparent text-slate-800'
                       }`}
-                      style={{ width: `${CELL_WIDTH}px`, height: `${CELL_HEIGHT}px` }}
+                      style={{ width: `${CELL_WIDTH}px`, height: `${CELL_HEIGHT}px`, fontSize: `${Math.round(24 * FONT_SCALE)}px` }}
                     >
                       {value > 0 ? (
                         value
                       ) : notes[index].length > 0 ? (
-                        <div className="grid grid-cols-3 gap-0 text-[10px] font-semibold leading-[1] text-slate-700">
+                        <div className="grid grid-cols-3 gap-0 font-semibold leading-[1] text-slate-700" style={{ fontSize: `${Math.round(11 * FONT_SCALE)}px` }}>
                           {Array.from({ length: 9 }, (_, i) => i + 1).map((n) => (
                             <span key={n} className="inline-flex h-3 w-3 items-center justify-center">
                               {notes[index].includes(n) ? n : ''}
@@ -252,46 +271,108 @@ export function SudokuBoard({
                 })}
               </div>
               <div
-                className="rounded-lg border border-slate-500/65 bg-slate-100/78 p-1 backdrop-blur-[2px]"
-                style={{ width: `${PAD_WIDTH}px` }}
+                className={`rounded-lg border border-slate-500/65 bg-slate-100/78 p-1 backdrop-blur-[2px] ${stackedLayout ? 'self-center' : ''}`}
+                style={{ width: `${stackedLayout ? GRID_WIDTH : PAD_WIDTH}px` }}
               >
-                <div className="mb-2 grid grid-cols-2 gap-1.5">
-                  <button
-                    type="button"
-                    disabled={locked || selectionLocked}
-                    onClick={onToggleNoteMode}
-                    className={`h-10 rounded-sm border px-1 font-mono text-xs font-bold uppercase disabled:opacity-40 ${
-                      noteMode ? 'border-sky-500/60 bg-sky-100/75 text-sky-900' : 'border-slate-500/60 bg-slate-200/75 text-slate-900'
-                    }`}
-                  >
-                    메모
-                  </button>
-                  <button
-                    type="button"
-                    disabled={locked || selectionLocked}
-                    onClick={() => {
-                      onClear();
-                    }}
-                    className="h-10 rounded-sm border border-slate-600/70 bg-slate-300/75 px-1 font-mono text-xs font-bold uppercase text-slate-900 disabled:opacity-40"
-                  >
-                    지우기
-                  </button>
-                </div>
-                <div className="grid grid-cols-3 gap-1.5">
-                  {Array.from({ length: 9 }, (_, index) => (
-                    <button
-                      type="button"
-                      disabled={locked || selectionLocked}
-                      onClick={() => {
-                        onInput(index + 1);
-                      }}
-                      key={`key-${index + 1}`}
-                      className="h-[44px] w-[44px] rounded-sm border border-slate-500/60 bg-slate-200/75 font-mono text-base font-bold text-slate-900 disabled:opacity-40"
-                    >
-                      {index + 1}
-                    </button>
-                  ))}
-                </div>
+                {stackedLayout ? (
+                  <div className="flex items-start justify-center gap-2 pb-1">
+                    <div className="grid gap-1.5">
+                      <div className="flex items-center gap-1.5">
+                        {stackedTopKeypadValues.map((value) => (
+                          <button
+                            type="button"
+                            disabled={locked || selectionLocked}
+                            onClick={() => onInput(value)}
+                            key={`key-${value}`}
+                            className="shrink-0 rounded-sm border border-slate-500/60 bg-slate-200/75 font-mono font-bold text-slate-900 disabled:opacity-40"
+                            style={{ width: `${STACKED_BUTTON_SIZE}px`, height: `${STACKED_BUTTON_SIZE}px`, fontSize: `${Math.round(18 * FONT_SCALE)}px` }}
+                          >
+                            {value}
+                          </button>
+                        ))}
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        {stackedBottomKeypadValues.map((value) => (
+                          <button
+                            type="button"
+                            disabled={locked || selectionLocked}
+                            onClick={() => onInput(value)}
+                            key={`key-${value}`}
+                            className="shrink-0 rounded-sm border border-slate-500/60 bg-slate-200/75 font-mono font-bold text-slate-900 disabled:opacity-40"
+                            style={{ width: `${STACKED_BUTTON_SIZE}px`, height: `${STACKED_BUTTON_SIZE}px`, fontSize: `${Math.round(18 * FONT_SCALE)}px` }}
+                          >
+                            {value}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="grid gap-1.5">
+                      <button
+                        type="button"
+                        disabled={locked || selectionLocked}
+                        onClick={onToggleNoteMode}
+                        className={`shrink-0 rounded-sm border px-2 font-mono font-bold uppercase disabled:opacity-40 ${
+                          noteMode ? 'border-sky-500/60 bg-sky-100/75 text-sky-900' : 'border-slate-500/60 bg-slate-200/75 text-slate-900'
+                        }`}
+                        style={{ width: `${STACKED_CONTROL_BUTTON_WIDTH}px`, height: `${STACKED_BUTTON_SIZE}px`, fontSize: `${Math.round(12 * FONT_SCALE)}px` }}
+                      >
+                        메모
+                      </button>
+                      <button
+                        type="button"
+                        disabled={locked || selectionLocked}
+                        onClick={onClear}
+                        className="shrink-0 rounded-sm border border-slate-600/70 bg-slate-300/75 px-2 font-mono font-bold uppercase text-slate-900 disabled:opacity-40"
+                        style={{ width: `${STACKED_CONTROL_BUTTON_WIDTH}px`, height: `${STACKED_BUTTON_SIZE}px`, fontSize: `${Math.round(12 * FONT_SCALE)}px` }}
+                      >
+                        지우기
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <div className="mb-2 grid grid-cols-2 gap-1.5">
+                      <button
+                        type="button"
+                        disabled={locked || selectionLocked}
+                        onClick={onToggleNoteMode}
+                        className={`rounded-sm border px-1 font-mono font-bold uppercase disabled:opacity-40 ${
+                          noteMode ? 'border-sky-500/60 bg-sky-100/75 text-sky-900' : 'border-slate-500/60 bg-slate-200/75 text-slate-900'
+                        }`}
+                        style={{ height: `${PAD_CONTROL_HEIGHT}px`, fontSize: `${Math.round(12 * FONT_SCALE)}px` }}
+                      >
+                        메모
+                      </button>
+                      <button
+                        type="button"
+                        disabled={locked || selectionLocked}
+                        onClick={() => {
+                          onClear();
+                        }}
+                        className="rounded-sm border border-slate-600/70 bg-slate-300/75 px-1 font-mono font-bold uppercase text-slate-900 disabled:opacity-40"
+                        style={{ height: `${PAD_CONTROL_HEIGHT}px`, fontSize: `${Math.round(12 * FONT_SCALE)}px` }}
+                      >
+                        지우기
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-3 gap-1.5">
+                      {keypadValues.map((value) => (
+                        <button
+                          type="button"
+                          disabled={locked || selectionLocked}
+                          onClick={() => {
+                            onInput(value);
+                          }}
+                          key={`key-${value}`}
+                          className="rounded-sm border border-slate-500/60 bg-slate-200/75 font-mono font-bold text-slate-900 disabled:opacity-40"
+                          style={{ width: `${PAD_NUMBER_SIZE}px`, height: `${PAD_NUMBER_SIZE}px`, fontSize: `${Math.round(18 * FONT_SCALE)}px` }}
+                        >
+                          {value}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>

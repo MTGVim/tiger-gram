@@ -24,7 +24,12 @@ export function NonogramBoard({
   conflictCells,
   locked = false
 }: NonogramBoardProps) {
-  const BASE_WIDTH = 800;
+  const MIN_BASE_WIDTH = 800;
+  const GAP_PX = 4;
+  const HINT_FONT_SIZE = 34;
+  const HINT_DIGIT_WIDTH = Math.ceil(HINT_FONT_SIZE * 0.62);
+  const HINT_ROW_GAP = Math.max(4, Math.round(HINT_FONT_SIZE * 0.22));
+  const HINT_COL_LINE_HEIGHT = Math.ceil(HINT_FONT_SIZE * 1.1);
   const draggingRef = useRef(false);
   const dragFillRef = useRef(true);
   const keyboardDragActiveRef = useRef(false);
@@ -35,6 +40,7 @@ export function NonogramBoard({
   const [scale, setScale] = useState(1);
   const [scaledHeight, setScaledHeight] = useState(0);
   const [selectedCell, setSelectedCell] = useState({ row: 0, col: 0 });
+  const [hasKeyboardSelection, setHasKeyboardSelection] = useState(false);
 
   useEffect(() => {
     const stopDragging = () => {
@@ -49,10 +55,33 @@ export function NonogramBoard({
     };
   }, []);
 
+  useEffect(() => {
+    setSelectedCell({ row: 0, col: 0 });
+    keyboardDragActiveRef.current = false;
+    setHasKeyboardSelection(false);
+  }, [selectionResetKey, board.length]);
+
+  const maxColClues = Math.max(...colClues.map((clue) => clue.length));
+  const boardSize = board.length;
+  const cellScale = boardSize <= 5 ? 2.3 : boardSize <= 10 ? 1.639 : 1;
+  const cellSize = Math.round(40 * cellScale);
+  const clueCellSize = cellSize;
+  const hintFontSize = HINT_FONT_SIZE;
+  const cellFontSize = Math.max(14, Math.round(18 * cellScale));
+  const rowClueContentWidth = rowClues.reduce((maxWidth, clue) => {
+    const valueWidth = clue.reduce((sum, value) => sum + String(value).length * HINT_DIGIT_WIDTH, 0);
+    const gaps = Math.max(0, clue.length - 1) * HINT_ROW_GAP;
+    return Math.max(maxWidth, valueWidth + gaps);
+  }, 0);
+  const rowClueWidth = Math.max(Math.ceil(hintFontSize * 1.2), rowClueContentWidth + 14);
+  const colClueHeight = maxColClues * HINT_COL_LINE_HEIGHT + 12;
+  const boardPixelWidth = boardSize * cellSize + Math.max(0, boardSize - 1) * GAP_PX;
+  const baseWidth = Math.max(MIN_BASE_WIDTH, rowClueWidth + GAP_PX + boardPixelWidth + 8);
+
   useLayoutEffect(() => {
     const updateScale = () => {
-      const targetWidth = viewportRef.current?.clientWidth ?? BASE_WIDTH;
-      const nextScale = Math.min(1, Math.max(0, targetWidth / BASE_WIDTH));
+      const targetWidth = viewportRef.current?.clientWidth ?? baseWidth;
+      const nextScale = Math.min(1, Math.max(0, targetWidth / baseWidth));
       setScale(nextScale);
       if (contentRef.current) {
         setScaledHeight(contentRef.current.scrollHeight * nextScale);
@@ -68,23 +97,7 @@ export function NonogramBoard({
       observer.disconnect();
       window.removeEventListener('resize', updateScale);
     };
-  }, []);
-
-  useEffect(() => {
-    setSelectedCell({ row: 0, col: 0 });
-    keyboardDragActiveRef.current = false;
-  }, [selectionResetKey, board.length]);
-
-  const maxRowClues = Math.max(...rowClues.map((clue) => clue.length));
-  const maxColClues = Math.max(...colClues.map((clue) => clue.length));
-  const boardSize = board.length;
-  const cellScale = boardSize <= 5 ? 2.3 : boardSize <= 10 ? 1.639 : 1;
-  const cellSize = Math.round(40 * cellScale);
-  const clueCellSize = cellSize;
-  const hintFontSize = 18;
-  const cellFontSize = Math.max(12, Math.round(14 * cellScale));
-  const rowClueWidth = Math.min(maxRowClues * 16 + 10, 200);
-  const colClueHeight = maxColClues * 18 + 10;
+  }, [baseWidth]);
 
   const isRowSatisfied = (rowIndex: number): boolean => {
     const row = board[rowIndex];
@@ -156,6 +169,16 @@ export function NonogramBoard({
       event.preventDefault();
       if (locked) return;
 
+      if (!hasKeyboardSelection) {
+        setHasKeyboardSelection(true);
+        setSelectedCell({ row: 0, col: 0 });
+        if (keyboardDragActiveRef.current) {
+          if (keyboardDragFillRef.current) onPaintCell(0, 0);
+          else onEraseCell(0, 0);
+        }
+        return;
+      }
+
       let nextRow = selectedCell.row;
       let nextCol = selectedCell.col;
       if (event.key === 'ArrowUp') nextRow = Math.max(0, selectedCell.row - 1);
@@ -183,16 +206,16 @@ export function NonogramBoard({
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [board, locked, onEraseCell, onPaintCell, selectedCell]);
+  }, [board, hasKeyboardSelection, locked, onEraseCell, onPaintCell, selectedCell]);
 
   return (
     <section
       className="box-border max-w-full overflow-hidden rounded-2xl border border-slate-400/60 bg-[#e7e7e7] p-3 text-slate-900 sm:p-4"
-      style={{ width: 'min(96vw, 800px)', marginInline: 'auto' }}
+      style={{ width: `min(96vw, ${baseWidth}px)`, marginInline: 'auto' }}
     >
       <div ref={viewportRef} className="flex w-full justify-center overflow-hidden">
-        <div className="overflow-hidden" style={{ width: BASE_WIDTH * scale, height: scaledHeight || 'auto' }}>
-          <div ref={contentRef} className="w-[800px] pb-2" style={{ transform: `scale(${scale})`, transformOrigin: 'top left' }}>
+        <div className="overflow-hidden" style={{ width: baseWidth * scale, height: scaledHeight || 'auto' }}>
+          <div ref={contentRef} className="pb-2" style={{ width: `${baseWidth}px`, transform: `scale(${scale})`, transformOrigin: 'top left' }}>
             <div className="mx-auto w-fit">
               <div className="flex gap-1">
                 <div style={{ width: rowClueWidth }} />
@@ -270,7 +293,7 @@ export function NonogramBoard({
                           cell === 1
                             ? 'bg-slate-600 text-slate-100'
                             : 'bg-[#efefef] text-slate-500'
-                        } ${selectedCell.row === r && selectedCell.col === c ? 'ring-2 ring-sky-400 ring-offset-1 ring-offset-[#e7e7e7]' : ''} ${
+                        } ${hasKeyboardSelection && selectedCell.row === r && selectedCell.col === c ? 'ring-2 ring-sky-400 ring-offset-1 ring-offset-[#e7e7e7]' : ''} ${
                           conflictCells?.has(`${r}-${c}`) ? 'animate-pulse border-rose-500 bg-rose-200' : ''
                         }`}
                       />
