@@ -96,6 +96,8 @@ export function NonogramPage() {
 
   const workerRef = useRef<Worker | null>(null);
   const requestIdRef = useRef(0);
+  const requestTierRef = useRef<Record<number, NonogramSizeTier>>({});
+  const activeTierRef = useRef<NonogramSizeTier>(sizeTier);
   const winRecordedRef = useRef(false);
   const winAudioRef = useRef<HTMLAudioElement | null>(null);
   const victoryAudioSrc = `${import.meta.env.BASE_URL}sounds/ta-da.mp3`;
@@ -126,12 +128,15 @@ export function NonogramPage() {
       }
 
       if (payload.type === 'error') {
+        delete requestTierRef.current[payload.id];
         setGenerationError(payload.message ?? '생성 실패');
         setIsGenerating(false);
         return;
       }
 
       if (payload.type === 'done' && payload.puzzle && payload.logicDifficulty && payload.logicDepth !== undefined) {
+        activeTierRef.current = requestTierRef.current[payload.id] ?? activeTierRef.current;
+        delete requestTierRef.current[payload.id];
         setModel({
           puzzle: payload.puzzle,
           logicDifficulty: payload.logicDifficulty,
@@ -144,6 +149,7 @@ export function NonogramPage() {
         setGenerationProgress(100);
         setGenerationInfo('');
         setGenerationError(null);
+        setToast(null);
         setIsGenerating(false);
         winRecordedRef.current = false;
       }
@@ -158,6 +164,10 @@ export function NonogramPage() {
   useEffect(() => {
     if (!workerRef.current) return;
     requestIdRef.current += 1;
+    requestTierRef.current[requestIdRef.current] = sizeTier;
+    setState('playing');
+    setToast(null);
+    winRecordedRef.current = false;
     setIsGenerating(true);
     setGenerationProgress(0);
     setGenerationInfo('');
@@ -190,13 +200,13 @@ export function NonogramPage() {
     setLeaderboard((prev) => {
       const next = recordPuzzleClear(prev, {
         game: 'nonogram',
-        difficulty: sizeTier,
+        difficulty: activeTierRef.current,
         seconds: elapsedSeconds
       });
       savePuzzleLeaderboard(next);
       return next;
     });
-  }, [elapsedSeconds, isGenerating, muted, sizeTier, state]);
+  }, [elapsedSeconds, isGenerating, muted, state]);
 
   const completeIfSolved = useCallback(
     (nextBoard: Cell[][]) => {
@@ -261,6 +271,8 @@ export function NonogramPage() {
   }, [model]);
 
   const newPuzzle = useCallback(() => {
+    setState('playing');
+    setToast(null);
     setSeed((prev) => prev + 1);
     winRecordedRef.current = false;
   }, []);
@@ -271,6 +283,9 @@ export function NonogramPage() {
 
   const setDifficulty = useCallback(
     (tier: NonogramSizeTier) => {
+      setState('playing');
+      setToast(null);
+      winRecordedRef.current = false;
       if (tier !== sizeTier) {
         setSeed((prev) => prev + 1);
       }

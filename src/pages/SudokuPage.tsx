@@ -58,6 +58,7 @@ export function SudokuPage() {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [state, setState] = useState<GameState>('playing');
+  const [activeTier, setActiveTier] = useState<SudokuTier>(tier);
   const [leaderboard, setLeaderboard] = useState<PuzzleLeaderboardEntry[]>(() => loadPuzzleLeaderboard());
   const [burstSignal, setBurstSignal] = useState(0);
   const [toast, setToast] = useState<string | null>(null);
@@ -82,8 +83,10 @@ export function SudokuPage() {
     setSelectedIndex(null);
     setElapsedSeconds(0);
     setState('playing');
+    setActiveTier(tier);
+    setToast(null);
     winRecordedRef.current = false;
-  }, [model.puzzle]);
+  }, [model.puzzle, tier]);
 
   useEffect(() => {
     if (state !== 'playing') return;
@@ -106,13 +109,13 @@ export function SudokuPage() {
     setLeaderboard((prev) => {
       const next = recordPuzzleClear(prev, {
         game: 'sudoku',
-        difficulty: tier,
+        difficulty: activeTier,
         seconds: elapsedSeconds
       });
       savePuzzleLeaderboard(next);
       return next;
     });
-  }, [elapsedSeconds, muted, state, tier]);
+  }, [activeTier, elapsedSeconds, muted, state]);
 
   const completeIfSolved = useCallback(
     (nextGrid: SudokuGrid) => {
@@ -178,12 +181,17 @@ export function SudokuPage() {
   }, []);
 
   const newPuzzle = useCallback(() => {
+    setState('playing');
+    setToast(null);
     setSeed((prev) => prev + 1);
     winRecordedRef.current = false;
   }, []);
 
   const setDifficulty = useCallback(
     (nextTier: SudokuTier) => {
+      setState('playing');
+      setToast(null);
+      winRecordedRef.current = false;
       if (nextTier !== tier) {
         setSeed((prev) => prev + 1);
       }
