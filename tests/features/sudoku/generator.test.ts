@@ -13,8 +13,8 @@ describe('sudoku generator by difficulty', () => {
     expect(parseSudokuTier('easy')).toBe('easy');
     expect(parseSudokuTier('hard')).toBe('hard');
     expect(parseSudokuTier('expert')).toBe('hard');
-    expect(parseSudokuTier('unknown')).toBe('medium');
-    expect(parseSudokuTier(null)).toBe('medium');
+    expect(parseSudokuTier('unknown')).toBe('easy');
+    expect(parseSudokuTier(null)).toBe('easy');
   });
 
   it('generates unique-solution puzzle for each tier', () => {

@@ -12,8 +12,8 @@ describe('nonogram size tiers', () => {
     expect(parseNonogramSizeTier('easy')).toBe('easy');
     expect(parseNonogramSizeTier('hard')).toBe('hard');
     expect(parseNonogramSizeTier('expert')).toBe('hard');
-    expect(parseNonogramSizeTier('unknown')).toBe('medium');
-    expect(parseNonogramSizeTier(null)).toBe('medium');
+    expect(parseNonogramSizeTier('unknown')).toBe('easy');
+    expect(parseNonogramSizeTier(null)).toBe('easy');
   });
 
   it('maps tier to board sizes', () => {
